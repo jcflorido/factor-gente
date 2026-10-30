@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="112" viewBox="0 0 480 112">
+  <title>Factor·Gente — Propuesta C: Monograma FG</title>
+  <g transform="translate(16,16)">
+    <path d="M14 66 V14 H38 M14 38 H32" stroke="#12396A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M67.8 34.4 A18 18 0 1 0 71.7 49.1 H58" stroke="#0B7C74" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  <text x="114" y="62" font-family="'Bricolage Grotesque','Segoe UI',Arial,sans-serif" font-size="34"><tspan font-weight="700" fill="#12396A">Factor</tspan><tspan font-weight="700" fill="#0B7C74">·</tspan><tspan font-weight="400" fill="#1F62B0">Gente</tspan></text>
+  <text x="116" y="86" font-family="'Segoe UI',Arial,sans-serif" font-size="12" letter-spacing="2" fill="#566479">RECLUTAMIENTO CON FILTRO</text>
+</svg>

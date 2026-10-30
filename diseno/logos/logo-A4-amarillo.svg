@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="112" viewBox="0 0 480 112">
+  <title>Factor·Gente — Logo A4 (acento amarillo)</title>
+  <g transform="translate(16,16)">
+    <path d="M15 48 L32 65" stroke="#12396A" stroke-width="14" stroke-linecap="round" fill="none"/>
+    <circle cx="14" cy="27" r="10" fill="#12396A"/>
+    <path d="M32 65 L60 33" stroke="#E3A72F" stroke-width="14" stroke-linecap="round" fill="none"/>
+    <circle cx="67" cy="13" r="10" fill="#E3A72F"/>
+  </g>
+  <text x="114" y="62" font-family="'Bricolage Grotesque','Segoe UI',Arial,sans-serif" font-size="34"><tspan font-weight="700" fill="#12396A">Factor</tspan><tspan font-weight="700" fill="#E3A72F">·</tspan><tspan font-weight="400" fill="#1F62B0">Gente</tspan></text>
+  <text x="116" y="86" font-family="'Segoe UI',Arial,sans-serif" font-size="12" letter-spacing="2" fill="#566479">RECLUTAMIENTO CON FILTRO</text>
+</svg>

@@ -1,0 +1,6 @@
+# Cloudflare Pages: el service worker y el manifiesto no se guardan en caché,
+# para que los teléfonos reciban cada actualización
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache

@@ -1,0 +1,959 @@
+<title>Factor-Gente</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: barra fija con selector de rol (Candidato / Empresa / Panel JC); cada vista es una cuadrícula de 2 columnas que se apila en celular. */
+:root{
+  --brand:#12396A; --brand-2:#1D4E87; --on-brand:#FFFFFF; --on-brand-muted:#BFD5EE; --brand-accent:#F2C14E;
+  --bg:#F2F7FC; --surface:#FFFFFF; --ink:#13243D; --muted:#566479; --line:#D5E0EC;
+  --accent:#1F62B0; --accent-soft:#E2EEFA; --aqua:#8A5A00; --aqua-soft:#FDF3D7; --sun:#F2C14E; --qr-bg:#FFFFFF;
+  --ok:#2C7A4B; --ok-soft:#E3F2E8; --warn:#B4530A; --warn-soft:#FDEBDC; --bad:#B3261E; --bad-soft:#FBE6E4;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Public Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --brand:#0D2342; --brand-2:#183A63;
+  --bg:#0B1422; --surface:#132037; --ink:#E5ECF5; --muted:#98A7BC; --line:#253652;
+  --accent:#7DB4F2; --accent-soft:#18304F; --aqua:#F2C14E; --aqua-soft:#3A2E12;
+  --ok:#62C08A; --ok-soft:#173225; --warn:#F59E5B; --warn-soft:#3A2416; --bad:#F07C73; --bad-soft:#3A1E1E;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --brand:#0D2342; --brand-2:#183A63;
+  --bg:#0B1422; --surface:#132037; --ink:#E5ECF5; --muted:#98A7BC; --line:#253652;
+  --accent:#7DB4F2; --accent-soft:#18304F; --aqua:#F2C14E; --aqua-soft:#3A2E12;
+  --ok:#62C08A; --ok-soft:#173225; --warn:#F59E5B; --warn-soft:#3A2416; --bad:#F07C73; --bad-soft:#3A1E1E;
+  color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--brand)}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h2{font-size:1.35rem}
+h3{font-size:1.05rem}
+p{margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface)}
+header .bar-band{background:var(--brand);color:var(--on-brand)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:12px}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand h1{font-size:1.5rem;letter-spacing:-.01em}
+.brand h1 b{color:var(--brand-accent)}
+.brand small{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--on-brand-muted)}
+.brand .logo{width:30px;height:30px;align-self:center;flex:none}
+.seg{display:flex;background:var(--brand-2);border:1px solid var(--brand-2);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--on-brand-muted);font:600 .9rem var(--f-body);padding:7px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--on-brand);color:var(--brand)}
+.demo{display:flex;gap:10px;align-items:center;padding-block:8px;font-size:.82rem;color:var(--warn);background:var(--warn-soft);border-bottom:1px solid var(--line)}
+.demo .wrap{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;width:100%}
+.demo button{margin-left:auto}
+
+main{padding-block:24px 64px}
+.intro{display:flex;flex-direction:column;gap:6px;margin-bottom:20px;max-width:70ch}
+.intro p{color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.stack{display:flex;flex-direction:column;gap:20px;min-width:0}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.card-h{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:baseline;justify-content:space-between}
+.card-h p{color:var(--muted);font-size:.88rem}
+.eyebrow{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--aqua)}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;min-width:0}
+fieldset+fieldset{border-top:1px solid var(--line);padding-top:16px}
+legend{font-family:var(--f-display);font-weight:700;font-size:1rem;padding:0;margin-bottom:4px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:.82rem;font-weight:600;color:var(--muted);min-width:0}
+.lbl{font-size:.82rem;font-weight:600;color:var(--muted)}
+input[type=text],input[type=number],input[type=tel],input[type=email],select,textarea{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;font-weight:400}
+textarea{min-height:76px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);font-weight:400}
+.private{display:inline-flex;gap:6px;align-items:center;font-size:.75rem;color:var(--aqua);font-weight:600}
+.radios{display:flex;flex-wrap:wrap;gap:8px}
+.radios label,.checks label{display:flex;gap:8px;align-items:flex-start;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.9rem;cursor:pointer}
+.checks input,.radios input{margin-top:3px;flex:none}
+.checks{display:flex;flex-direction:column;gap:8px}
+.checks.inline{flex-direction:row;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:5px 12px;font:500 .85rem var(--f-body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.add-hab{display:flex;gap:8px;max-width:440px}
+.add-hab input{flex:1;min-width:0}
+
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 14px;font:600 .88rem var(--f-body);cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.aqua{background:var(--sun);border-color:var(--sun);color:var(--brand)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.danger.fill{background:var(--bad);color:var(--surface)}
+.btn.sm{padding:5px 10px;font-size:.8rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.toast{font-size:.88rem;color:var(--ok);font-weight:600}
+.toast.err{color:var(--bad)}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px;font-size:.74rem;font-weight:600;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.info{background:var(--accent-soft);color:var(--accent)}
+.pill.lea{background:var(--aqua-soft);color:var(--aqua)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.item{border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;background:var(--bg)}
+.item.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.item-h{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between}
+.item-h strong{font-size:.98rem}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.82rem;color:var(--muted);align-items:center}
+button.item{text-align:left;font:inherit;color:inherit;cursor:pointer}
+
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+@media (max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.kpi span{display:block;font-size:.78rem;color:var(--muted);font-weight:600}
+.kpi b{font-family:var(--f-display);font-size:1.9rem;font-variant-numeric:tabular-nums}
+.kpi small{color:var(--muted);font-size:.75rem}
+
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--bg);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td .actions{gap:6px;flex-wrap:nowrap}
+.score{display:flex;align-items:center;gap:8px;min-width:96px}
+.score i{display:block;height:6px;border-radius:3px;background:var(--line);flex:1;position:relative;overflow:hidden}
+.score i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);background:var(--accent);border-radius:3px}
+
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar-r{display:grid;grid-template-columns:150px minmax(0,1fr) 40px;gap:10px;align-items:center;font-size:.85rem}
+.bar-r i{display:block;height:8px;border-radius:4px;background:var(--line);position:relative;overflow:hidden}
+.bar-r i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);background:var(--sun);border-radius:4px}
+
+.q{display:flex;flex-direction:column;gap:8px;padding-block:10px;border-bottom:1px solid var(--line)}
+.q p{font-weight:500}
+.scale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.scale button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:7px 2px;font:500 .74rem var(--f-body);cursor:pointer;line-height:1.2}
+.scale button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:var(--w)}
+
+.services{background:var(--aqua-soft);border-color:transparent}
+.services h3{color:var(--aqua)}
+.terms{background:var(--bg);border:1px dashed var(--line);border-radius:8px;padding:12px 14px;font-size:.86rem;display:flex;flex-direction:column;gap:6px}
+.terms ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+details{font-size:.85rem;color:var(--muted)}
+details summary{cursor:pointer;color:var(--accent);font-weight:600}
+details p{margin-top:8px}
+.ficha{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px 14px;font-size:.83rem}
+.ficha div span{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
+.empty{color:var(--muted);font-size:.9rem;padding:8px 0}
+.note{font-size:.82rem;color:var(--muted);border-left:3px solid var(--sun);padding-left:10px}
+.banner{background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--r);padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:20px;font-size:.9rem}
+.confirm{background:var(--bad-soft);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;font-size:.88rem}
+
+.poster{background:var(--brand);color:var(--on-brand);border-radius:12px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center}
+.poster b{font-family:var(--f-display);font-size:1.25rem;line-height:1.2;display:block;text-wrap:balance}
+.poster .t{display:flex;flex-direction:column;gap:8px;min-width:0}
+.poster .t span{font-size:.85rem;color:var(--on-brand-muted)}
+.poster .t .url{color:var(--brand-accent)}
+.poster .mark{display:flex;gap:8px;align-items:center;font-family:var(--f-display);font-weight:700}
+.poster .mark svg{width:22px;height:22px}
+.poster .mark i{font-style:normal;color:var(--brand-accent)}
+.qr{background:var(--qr-bg);border-radius:8px;padding:8px;width:116px;height:116px}
+.qr svg{width:100%;height:100%;display:block}
+@media (max-width:420px){.poster{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:no-preference){.btn,.chip,.seg button{transition:background .15s,border-color .15s,color .15s}}
+</style>
+
+<header>
+  <div class="bar-band"><div class="wrap bar">
+    <div class="brand"><svg class="logo" viewBox="0 0 82 80" aria-hidden="true"><path d="M15 48 L32 65" stroke="var(--on-brand)" stroke-width="14" stroke-linecap="round" fill="none"/><circle cx="14" cy="27" r="10" fill="var(--on-brand)"/><path d="M32 65 L60 33" stroke="var(--brand-accent)" stroke-width="14" stroke-linecap="round" fill="none"/><circle cx="67" cy="13" r="10" fill="var(--brand-accent)"/></svg><h1>Factor<b>·</b>Gente</h1><small>Bolsa de trabajo con filtro</small></div>
+    <nav class="seg" aria-label="Ver como">
+      <button type="button" data-role="candidato">Candidato</button>
+      <button type="button" data-role="empresa">Empresa</button>
+      <button type="button" data-role="panel">Panel JC</button>
+    </nav>
+  </div></div>
+  <div class="demo"><div class="wrap"><span><b>Prototipo.</b> Todos los nombres y datos son de ejemplo. Lo que cambies se guarda solo en este navegador.</span><button type="button" class="btn sm" data-act="reset">Reiniciar ejemplo</button></div></div>
+</header>
+<main class="wrap" id="app"></main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(function(){
+const DAY = 864e5;
+const today = new Date(); today.setHours(0,0,0,0);
+const hoy = () => today.toISOString().slice(0,10);
+const ago = d => new Date(today - d*DAY).toISOString().slice(0,10);
+const fmtDate = s => new Date(s+'T00:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
+const money = n => n ? '$'+Number(n).toLocaleString('es-MX') : '—';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+
+const HAB = {
+  Operativo:['Corte','Preparado','Pespunte','Montado','Adorno','Acabado','Empaque','Máquina de coser','Inyección de suela','Control de calidad','Almacén','Montacargas','Mantenimiento','Chofer / reparto','Limpieza'],
+  Administrativo:['Excel','Facturación','CONTPAQi','Contabilidad general','Nómina','Cobranza','Compras','Ventas','Atención a clientes','Inventarios','Logística','Recursos humanos','Redes sociales','Diseño gráfico'],
+  'Supervisión':['Manejo de personal','Planeación de producción','Indicadores de producción','Control de calidad','Seguridad e higiene','Capacitación','Mejora continua / 5S','Solución de problemas','Reportes en Excel','Manejo de turnos']
+};
+const MUNI = ['San Francisco del Rincón','Purísima del Rincón','León','Manuel Doblado','Romita','Silao'];
+const ESCO = ['Primaria','Secundaria','Preparatoria / bachillerato','Carrera técnica','Licenciatura','Posgrado'];
+const SALIDA = ['Terminó contrato','Mejor oferta','Horario','Distancia / transporte','Problemas con jefe','Cierre o recorte','Motivos personales'];
+const PAGO = ['Semanal fijo','Destajo','Mixto (base + destajo)','Quincenal o mensual'];
+const TRANSP = ['No','Bicicleta','Moto','Auto'];
+
+// Referencias de ejemplo para el prototipo; se actualizan con vacantes reales de la zona y con las colocaciones de Factor-Gente.
+const REF = [
+  {p:'Pespunte',kw:['pespunt'],min:9000,max:13000,pago:'Destajo o semanal'},
+  {p:'Corte',kw:['cortador','corte'],min:10000,max:13500,pago:'Semanal o destajo'},
+  {p:'Montado',kw:['montad'],min:10000,max:13000,pago:'Semanal o destajo'},
+  {p:'Ayudante general / acabado',kw:['ayudante','acabad','empaque'],min:8500,max:10000,pago:'Semanal fijo'},
+  {p:'Almacenista',kw:['almacen'],min:9500,max:11500,pago:'Semanal fijo'},
+  {p:'Recepción / ventas',kw:['recepcion','ventas','vendedor'],min:9000,max:11500,pago:'Quincenal'},
+  {p:'Auxiliar contable o de nómina',kw:['contable','contador','nomina'],min:12000,max:16000,pago:'Quincenal'},
+  {p:'Supervisor de producción',kw:['supervisor','jefe de linea','encargado'],min:14000,max:16000,pago:'Quincenal'}
+];
+const refFor = puesto => REF.find(r=>r.kw.some(k=>norm(puesto).includes(k)));
+
+// Mini-IPIP (Donnellan et al., 2006), reactivos IPIP de dominio público. Traducción de trabajo al español.
+const ITEMS = [
+  ['Soy el alma de la fiesta.','E',1],
+  ['Me pongo en el lugar de los demás y comprendo lo que sienten.','A',1],
+  ['Hago mis pendientes en cuanto puedo.','C',1],
+  ['Mi estado de ánimo cambia con frecuencia.','N',1],
+  ['Tengo una imaginación muy viva.','I',1],
+  ['No hablo mucho.','E',-1],
+  ['No me interesan los problemas de otras personas.','A',-1],
+  ['Seguido olvido regresar las cosas a su lugar.','C',-1],
+  ['Estoy tranquilo(a) la mayor parte del tiempo.','N',-1],
+  ['No me interesan las ideas abstractas.','I',-1],
+  ['En reuniones platico con muchas personas distintas.','E',1],
+  ['Siento las emociones de los demás.','A',1],
+  ['Me gusta el orden.','C',1],
+  ['Me altero con facilidad.','N',1],
+  ['Me cuesta entender ideas abstractas.','I',-1],
+  ['Prefiero pasar desapercibido(a).','E',-1],
+  ['Realmente no me intereso por los demás.','A',-1],
+  ['Suelo hacer las cosas con desorden.','C',-1],
+  ['Rara vez me siento triste.','N',-1],
+  ['No tengo mucha imaginación.','I',-1]
+];
+const SCALE = ['Muy en desacuerdo','En desacuerdo','Ni sí ni no','De acuerdo','Muy de acuerdo'];
+const TRAITS = [['C','Responsabilidad'],['S','Estabilidad emocional'],['A','Amabilidad'],['E','Extroversión'],['I','Apertura / imaginación']];
+
+function scoreMini(ans){
+  const sum={E:0,A:0,C:0,N:0,I:0};
+  ITEMS.forEach(([,t,k],i)=>{ const v=ans[i]; sum[t]+= k>0 ? v : 6-v; });
+  const pct = t => Math.round((sum[t]/4-1)/4*100);
+  return {C:pct('C'),S:100-pct('N'),A:pct('A'),E:pct('E'),I:pct('I')};
+}
+function perfilTexto(r){
+  if(!r) return '';
+  const t=[];
+  if(r.C>=70) t.push('constante y ordenado'); else if(r.C<40) t.push('le cuesta la constancia');
+  if(r.S>=65) t.push('mantiene la calma');
+  if(r.A>=70) t.push('buen trato');
+  if(r.E>=65) t.push('sociable'); else if(r.E<35) t.push('reservado');
+  if(r.I>=70) t.push('propone ideas');
+  return t.length ? t.join(' · ') : 'perfil equilibrado';
+}
+
+function blankCand(id, asistido){
+  return {id,nombre:'',edad:'',sexo:'Prefiero no decir',tel:'',correo:'',municipio:MUNI[0],colonia:'',esco:'Secundaria',
+    area:'Operativo',puesto:'',funciones:'',habilidades:[],carta:'',
+    ultimo:{puesto:'',empresa:'',funciones:'',tiempo:'Menos de 6 meses',sueldo:'',salida:SALIDA[0],tipo:'Semanal fijo'},
+    pmin:'',pmax:'',horario:'Cualquiera',disp:'Inmediata',tipoPref:'Cualquiera',mov:[MUNI[0]],transp:'No',
+    estado:'Disponible',registro:hoy(),pruebas:{mini:{estado:null,res:null}},interes:[],coloc:null,
+    consent:{pruebas:false,servicios:false},inclusion:[],ajuste:'',asistido:!!asistido,nuevo:true};
+}
+
+function normalize(st){
+  st.candidatos.forEach(c=>{
+    c.mov=c.mov||[c.municipio]; c.transp=c.transp||'No'; c.tipoPref=c.tipoPref||'Cualquiera';
+    c.ultimo.tipo=c.ultimo.tipo||'Semanal fijo'; c.ultimo.empresa=c.ultimo.empresa||'';
+    c.consent=c.consent||{pruebas:true,servicios:false}; c.inclusion=c.inclusion||[]; c.ajuste=c.ajuste||'';
+    c.carta=c.carta||''; c.correo=c.correo||''; c.colonia=c.colonia||'';
+  });
+  st.vacantes.forEach(v=>{ v.tipo=v.tipo||'Semanal fijo'; v.just=v.just||''; v.incluyente=!!v.incluyente; });
+  st.soloInc=!!st.soloInc;
+  return st;
+}
+
+function seed(){
+  return normalize({
+    role:'candidato', selVac:'v1', selCand:null, testOpen:false, testAns:Array(20).fill(0), filtrosInternos:true,
+    asistido:false, asistId:null, confirmBorrar:false,
+    candidatos:[
+      {id:'c0',nombre:'Rosa Elena Muñoz',edad:31,sexo:'Mujer',tel:'476 000 0000',correo:'',municipio:'San Francisco del Rincón',colonia:'Centro',esco:'Secundaria',
+       area:'Operativo',puesto:'Pespuntadora',funciones:'Pespunte de cortes en máquina de poste y plana, armado de corte, revisión de costuras.',habilidades:['Pespunte','Máquina de coser','Control de calidad','Pespunte de bota vaquera'],carta:'',
+       ultimo:{puesto:'Pespuntadora',empresa:'Taller familiar',funciones:'Pespunte de botín y zapato casual, 300 pares por semana.',tiempo:'1 a 3 años',sueldo:9500,salida:'Horario',tipo:'Destajo'},
+       pmin:10500,pmax:12000,horario:'Matutino',disp:'Inmediata',tipoPref:'Destajo',mov:['San Francisco del Rincón','Purísima del Rincón'],transp:'No',
+       estado:'Disponible',registro:ago(2),pruebas:{mini:{estado:'asignada',res:null}},interes:[],coloc:null,consent:{pruebas:true,servicios:false}},
+      {id:'c8',nombre:'Héctor Navarro Ibarra',edad:38,sexo:'Hombre',tel:'476 000 0008',municipio:'San Francisco del Rincón',esco:'Carrera técnica',area:'Supervisión',puesto:'Supervisor de producción',
+       funciones:'Coordino línea de pespunte y montado de 40 personas: metas diarias, calidad y reportes.',habilidades:['Manejo de personal','Planeación de producción','Indicadores de producción','Control de calidad'],
+       carta:'Llevo 8 años como jefe de línea. Busco una empresa donde pueda aplicar mejora continua y bajar el desperdicio.',
+       ultimo:{puesto:'Jefe de línea',funciones:'Línea de pespunte de 40 personas.',tiempo:'3 años o más',sueldo:18000,salida:'Mejor oferta',tipo:'Quincenal o mensual'},
+       pmin:19000,pmax:23000,horario:'Matutino',disp:'15 días',mov:['San Francisco del Rincón','Purísima del Rincón','León'],transp:'Auto',
+       estado:'Disponible',registro:ago(4),pruebas:{mini:{estado:'completada',res:{C:82,S:74,A:60,E:68,I:55}}},interes:[]},
+      {id:'c1',nombre:'Juan Pablo Ramírez',edad:24,sexo:'Hombre',tel:'476 000 0001',municipio:'Purísima del Rincón',esco:'Preparatoria / bachillerato',area:'Operativo',puesto:'Montador',
+       funciones:'Montado en máquina de puntas y enfranque, cardado.',habilidades:['Montado','Acabado'],ultimo:{puesto:'Ayudante de montado',funciones:'Montado manual y cardado.',tiempo:'6 a 12 meses',sueldo:8800,salida:'Mejor oferta',tipo:'Semanal fijo'},
+       pmin:10000,pmax:11500,horario:'Cualquiera',disp:'15 días',mov:['Purísima del Rincón','San Francisco del Rincón','León'],transp:'Moto',
+       estado:'Disponible',registro:ago(9),pruebas:{mini:{estado:'completada',res:{C:78,S:62,A:70,E:45,I:40}}},interes:[]},
+      {id:'c2',nombre:'Mariana Torres Gómez',edad:28,sexo:'Mujer',tel:'476 000 0002',municipio:'San Francisco del Rincón',esco:'Licenciatura',area:'Administrativo',puesto:'Auxiliar contable',
+       funciones:'Captura de pólizas, conciliaciones bancarias, facturación CFDI 4.0.',habilidades:['Excel','Facturación','CONTPAQi','Nómina'],carta:'Soy contadora con 4 años en empresas de calzado. Busco un lugar estable cerca de casa donde pueda crecer en el área de costos.',
+       ultimo:{puesto:'Auxiliar contable',funciones:'Pólizas, conciliaciones y declaraciones mensuales.',tiempo:'3 años o más',sueldo:13500,salida:'Distancia / transporte',tipo:'Quincenal o mensual'},
+       pmin:14000,pmax:16000,horario:'Matutino',disp:'1 mes',mov:['San Francisco del Rincón','Purísima del Rincón'],
+       estado:'Disponible',registro:ago(5),pruebas:{mini:{estado:'completada',res:{C:85,S:70,A:65,E:50,I:62}}},interes:['v2'],consent:{pruebas:true,servicios:true}},
+      {id:'c3',nombre:'Luis Ángel Hernández',edad:42,sexo:'Hombre',tel:'476 000 0003',municipio:'León',esco:'Secundaria',area:'Operativo',puesto:'Cortador',
+       funciones:'Corte de piel a mano y en suaje, aprovechamiento de material.',habilidades:['Corte','Control de calidad'],ultimo:{puesto:'Cortador',funciones:'Corte de piel vacuno y sintético.',tiempo:'3 años o más',sueldo:11000,salida:'Cierre o recorte',tipo:'Destajo'},
+       pmin:11500,pmax:13000,horario:'Matutino',disp:'Inmediata',mov:['León'],
+       estado:'Disponible',registro:ago(14),pruebas:{mini:{estado:null,res:null}},interes:['v1'],consent:{pruebas:false,servicios:false}},
+      {id:'c4',nombre:'Daniela Ortiz',edad:22,sexo:'Mujer',tel:'476 000 0004',municipio:'San Francisco del Rincón',esco:'Carrera técnica',area:'Administrativo',puesto:'Recepcionista / ventas',
+       funciones:'Atención a clientes en mostrador y por WhatsApp, cobranza.',habilidades:['Atención a clientes','Ventas','Redes sociales','Excel'],carta:'Me gusta tratar con la gente y aprendo rápido.',
+       ultimo:{puesto:'Vendedora de mostrador',funciones:'Ventas, caja y redes sociales.',tiempo:'6 a 12 meses',sueldo:8500,salida:'Mejor oferta',tipo:'Quincenal o mensual'},
+       pmin:9500,pmax:11000,horario:'Mixto',disp:'Inmediata',estado:'En proceso',registro:ago(20),pruebas:{mini:{estado:'completada',res:{C:48,S:55,A:80,E:82,I:60}}},interes:[]},
+      {id:'c5',nombre:'José Guadalupe Medina',edad:35,sexo:'Hombre',tel:'476 000 0005',municipio:'Manuel Doblado',esco:'Primaria',area:'Operativo',puesto:'Almacenista',
+       funciones:'Recibo y surtido de material, inventarios, manejo de montacargas.',habilidades:['Almacén','Montacargas'],ultimo:{puesto:'Almacenista',funciones:'Surtido a líneas de producción.',tiempo:'1 a 3 años',sueldo:9000,salida:'Problemas con jefe',tipo:'Semanal fijo'},
+       pmin:9500,pmax:11000,horario:'Cualquiera',disp:'Inmediata',mov:['Manuel Doblado','Purísima del Rincón'],transp:'Moto',
+       inclusion:['Discapacidad'],ajuste:'Discapacidad auditiva parcial; prefiere instrucciones por escrito.',
+       estado:'Disponible',registro:ago(7),pruebas:{mini:{estado:'completada',res:{C:66,S:48,A:58,E:40,I:35}}},interes:[]},
+      {id:'c9',nombre:'María de Jesús López',edad:62,sexo:'Mujer',tel:'476 000 0009',municipio:'Purísima del Rincón',esco:'Primaria',area:'Operativo',puesto:'Acabado y empaque',
+       funciones:'Limpieza de calzado, encajado y etiquetado.',habilidades:['Acabado','Empaque'],ultimo:{puesto:'Acabadora',funciones:'Acabado y empaque de zapato de dama.',tiempo:'3 años o más',sueldo:8800,salida:'Cierre o recorte',tipo:'Semanal fijo'},
+       pmin:8800,pmax:10000,horario:'Matutino',disp:'Inmediata',mov:['Purísima del Rincón','San Francisco del Rincón'],
+       estado:'Disponible',registro:ago(6),pruebas:{mini:{estado:null,res:null}},interes:['v3']},
+      {id:'c6',nombre:'Ana Karen Velázquez',edad:30,sexo:'Mujer',tel:'476 000 0006',municipio:'Purísima del Rincón',esco:'Licenciatura',area:'Administrativo',puesto:'Auxiliar de nómina',
+       funciones:'Cálculo de nómina semanal, altas y bajas IMSS, control de asistencia.',habilidades:['Nómina','Excel','Recursos humanos'],carta:'Tengo experiencia en nómina de maquiladoras de calzado.',
+       ultimo:{puesto:'Auxiliar de RH',funciones:'Nómina de 120 personas.',tiempo:'1 a 3 años',sueldo:12000,salida:'Motivos personales',tipo:'Quincenal o mensual'},
+       pmin:12500,pmax:14500,horario:'Matutino',disp:'Inmediata',mov:['Purísima del Rincón','San Francisco del Rincón'],
+       estado:'Colocado',registro:ago(110),pruebas:{mini:{estado:'completada',res:{C:80,S:72,A:68,E:55,I:58}}},interes:[],
+       coloc:{vac:'Auxiliar de nómina · Suelas del Bajío',ingreso:ago(95),checks:{30:true,60:true,90:true}}},
+      {id:'c7',nombre:'Ricardo Salas',edad:27,sexo:'Hombre',tel:'476 000 0007',municipio:'San Francisco del Rincón',esco:'Secundaria',area:'Operativo',puesto:'Ayudante general',
+       funciones:'Acabado, empaque y limpieza de área.',habilidades:['Acabado','Limpieza'],ultimo:{puesto:'Ayudante general',funciones:'Empaque y acabado.',tiempo:'Menos de 6 meses',sueldo:8200,salida:'Horario',tipo:'Semanal fijo'},
+       pmin:9000,pmax:10000,horario:'Matutino',disp:'Inmediata',estado:'Colocado',registro:ago(70),pruebas:{mini:{estado:'completada',res:{C:42,S:50,A:60,E:58,I:45}}},interes:[],
+       coloc:{vac:'Ayudante general · Calzado La Joya',ingreso:ago(48),checks:{30:false,60:null,90:null}}}
+    ],
+    vacantes:[
+      {id:'v1',empresa:'Calzado La Joya',giro:'Fabricante de calzado de dama',contacto:'Lic. Gabriela Ruiz',puesto:'Pespuntadora',area:'Operativo',n:2,zona:'San Francisco del Rincón',
+       funciones:'Pespunte de corte de bota y botín en máquina de poste.',esco:'Primaria',exp:'1 año',habilidades:['Pespunte','Máquina de coser'],smin:10000,smax:12500,tipo:'Destajo',horario:'Matutino',
+       prest:['IMSS','Bono de puntualidad','Vales de despensa'],transporte:'No',comedor:'Sí',salidas:3,motivo:'Sueldo',sexo:'Indistinto',edadMin:'',edadMax:'',just:'',incluyente:false,pub:'anonima',
+       estado:'Abierta',alta:ago(3),terna:[],interes:[],liberados:[]},
+      {id:'v2',empresa:'Calzado La Joya',giro:'Fabricante de calzado de dama',contacto:'Lic. Gabriela Ruiz',puesto:'Auxiliar contable',area:'Administrativo',n:1,zona:'San Francisco del Rincón',
+       funciones:'Pólizas, conciliaciones, facturación y apoyo en cierre mensual.',esco:'Licenciatura',exp:'2 años',habilidades:['Excel','Facturación','CONTPAQi'],smin:13500,smax:16000,tipo:'Quincenal o mensual',horario:'Matutino',
+       prest:['IMSS','Aguinaldo superior a ley'],transporte:'No',comedor:'Sí',salidas:1,motivo:'Mejor oferta',sexo:'Indistinto',edadMin:25,edadMax:40,just:'Lo pide el dueño; puesto de confianza.',incluyente:false,pub:'anonima',
+       estado:'Terna enviada',alta:ago(10),terna:['c2','c6'],interes:['c2'],liberados:[]},
+      {id:'v3',empresa:'Suelas del Bajío',giro:'Fabricante de suela',contacto:'Ing. Marco Pérez',puesto:'Almacenista',area:'Operativo',n:1,zona:'Purísima del Rincón',
+       funciones:'Recibo, acomodo y surtido de material; manejo de montacargas.',esco:'Secundaria',exp:'1 año',habilidades:['Almacén','Montacargas'],smin:9500,smax:11000,tipo:'Semanal fijo',horario:'Cualquiera',
+       prest:['IMSS','Caja de ahorro'],transporte:'Sí',comedor:'No',salidas:4,motivo:'Horario',sexo:'Indistinto',edadMin:'',edadMax:'',just:'',incluyente:true,pub:'privada',
+       estado:'Abierta',alta:ago(1),terna:[],interes:[],liberados:[]}
+    ],
+    leads:[
+      {nombre:'Calzado La Joya',tipo:'Empresa',servicios:['Fiscal','Organizacional'],via:'WhatsApp',tel:'476 000 0100',fecha:ago(3)},
+      {nombre:'Mariana Torres Gómez',cid:'c2',tipo:'Candidato',servicios:['Legal'],via:'Mandarme la página web',tel:'476 000 0002',fecha:ago(5)}
+    ]
+  });
+}
+
+const KEY='factor-gente-proto-v4';
+let S;
+try{ const raw=JSON.parse(localStorage.getItem(KEY)); S = raw ? normalize(raw) : seed(); }catch(e){ S = seed(); }
+const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
+const cand = id => S.candidatos.find(c=>c.id===id);
+const vac = id => S.vacantes.find(v=>v.id===id);
+const ME = 'c0', EMP = 'Calzado La Joya';
+const curId = () => S.asistido ? S.asistId : ME;
+const base = () => S.candidatos.filter(c=>!c.nuevo);
+const isInc = c => c.inclusion.length>0 || c.edad>=60;
+const app = document.getElementById('app');
+
+/* ---------- utilidades de vista ---------- */
+const opts = (arr, sel) => arr.map(o=>`<option${o===sel?' selected':''}>${esc(o)}</option>`).join('');
+const chipsHTML = (area, sel, name) => {
+  const todas = Object.values(HAB).flat().map(norm);
+  const propias = sel.filter(h=>!todas.includes(norm(h)));
+  return [...HAB[area], ...propias].map(h=>`<button type="button" class="chip" data-chip="${name}" aria-pressed="${sel.some(s=>norm(s)===norm(h))}">${esc(h)}</button>`).join('');
+};
+const otraHTML = (name, ej) => `<div class="add-hab"><input type="text" id="otra-${name}" placeholder="Otra habilidad, ej. ${ej}" aria-label="Agregar otra habilidad"><button type="button" class="btn sm" data-act="add-hab" data-name="${name}">Agregar</button></div>
+  <span class="hint">Puedes escribir varias separadas por coma.</span>`;
+function addOtra(name){
+  const inp=document.getElementById('otra-'+name), box=document.getElementById(name==='cand'?'cf-chips':'ef-chips');
+  inp.value.split(',').map(s=>s.trim()).filter(Boolean).forEach(h=>{
+    const ex=[...box.querySelectorAll('[data-chip]')].find(b=>norm(b.textContent)===norm(h));
+    if(ex) ex.setAttribute('aria-pressed','true');
+    else box.insertAdjacentHTML('beforeend',`<button type="button" class="chip" data-chip="${name}" aria-pressed="true">${esc(h)}</button>`);
+  });
+  inp.value=''; inp.focus();
+}
+const readChips = name => [...app.querySelectorAll(`[data-chip="${name}"][aria-pressed="true"]`)].map(b=>b.textContent);
+const readChecks = name => [...app.querySelectorAll(`[name="${name}"]:checked`)].map(x=>x.value);
+const val = id => { const el=document.getElementById(id); return el ? el.value.trim() : ''; };
+const num = id => Number(val(id)) || '';
+const checked = id => { const el=document.getElementById(id); return !!(el && el.checked); };
+const ESTADOS = {'Disponible':'ok','En proceso':'info','Colocado':'lea','Inactivo':'bad'};
+const estadoPill = e => ESTADOS[e] ? `<span class="pill ${ESTADOS[e]}">${e}</span>` : '';
+const vacPill = e => `<span class="pill ${e==='Abierta'?'ok':e==='Terna enviada'?'info':'lea'}">${e}</span>`;
+function flash(id, msg, err){ const el=document.getElementById(id); if(!el) return; el.textContent=msg; el.className='toast'+(err?' err':''); }
+const logoSVG = `<svg viewBox="0 0 82 80" aria-hidden="true"><path d="M15 48 L32 65" stroke="var(--on-brand)" stroke-width="14" stroke-linecap="round" fill="none"/><circle cx="14" cy="27" r="10" fill="var(--on-brand)"/><path d="M32 65 L60 33" stroke="var(--brand-accent)" stroke-width="14" stroke-linecap="round" fill="none"/><circle cx="67" cy="13" r="10" fill="var(--brand-accent)"/></svg>`;
+
+function servicesCard(who){
+  const tel = who==='cand' ? esc((cand(curId())||{}).tel) : '';
+  return `<section class="card services" aria-labelledby="sv-${who}">
+    <div class="card-h"><h3 id="sv-${who}">¿Quieres conocer más servicios de la consultora?</h3></div>
+    <p class="hint">Además de reclutamiento, JC Florido ofrece asesoría legal, fiscal, contable y organizacional.</p>
+    <div class="checks inline">${['Legal','Fiscal','Contable','Organizacional'].map(s=>`<label><input type="checkbox" name="sv-${who}" value="${s}"> ${s}</label>`).join('')}</div>
+    <label class="f">Tu WhatsApp o teléfono<input type="tel" id="sv-tel-${who}" value="${tel}"></label>
+    <label class="f">¿Cómo prefieres que te contactemos?
+      <select id="sv-via-${who}">${opts(['WhatsApp','Llamada','Correo','Mandarme la página web'])}</select></label>
+    <div class="actions"><button type="button" class="btn aqua" data-act="lead" data-who="${who}">Quiero que me contacten</button><span id="sv-msg-${who}"></span></div>
+    <p class="hint">Tus datos los recibe solo JC Florido y él te contacta. Mientras tanto puedes visitar <span class="mono">jcflorido.me</span>.</p>
+  </section>`;
+}
+
+function refCard(){
+  return `<section class="card" aria-labelledby="h-ref">
+    <div class="card-h"><h3 id="h-ref">Sueldos de referencia en la zona</h3><p>Mensual aproximado</p></div>
+    <div class="tbl"><table><thead><tr><th>Puesto</th><th>Rango</th><th>Pago común</th></tr></thead><tbody>
+    ${REF.map(r=>`<tr><td>${esc(r.p)}</td><td class="mono">${money(r.min)}–${money(r.max)}</td><td>${esc(r.pago)}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="hint">Cifras de ejemplo para el prototipo. En la app real se actualizan con vacantes publicadas en SFR, Purísima y León y con las colocaciones de Factor-Gente.</p>
+  </section>`;
+}
+
+const AVISO = `<details><summary>Aviso de privacidad (borrador)</summary>
+  <p><b>Responsable:</b> Factor-Gente, servicio de JC Florido, San Francisco del Rincón, Gto.</p>
+  <p><b>Para qué usamos tus datos:</b> buscarte empleo, compararte con vacantes, compartir tu perfil sin tus datos de contacto con empresas que buscan personal y darte seguimiento si te contratan.</p>
+  <p><b>Finalidad adicional, a la que puedes negarte:</b> ofrecerte otros servicios de la consultora. Solo lo hacemos si marcas la casilla.</p>
+  <p><b>Datos sensibles:</b> si nos dices que tienes una discapacidad, solo lo usamos para vacantes incluyentes y no se comparte sin tu permiso.</p>
+  <p><b>Tus derechos:</b> puedes pedir ver, corregir, cancelar u oponerte al uso de tus datos (derechos ARCO), y borrar tu cuenta desde esta misma pantalla. La autoridad en la materia es la Secretaría Anticorrupción y Buen Gobierno, conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares vigente desde el 21 de marzo de 2025.</p>
+  <p><b>Seguimiento:</b> cada 60 días te preguntaremos si sigues buscando trabajo.</p>
+  <p class="hint">Borrador para revisión de un abogado antes de publicar la app.</p></details>`;
+
+/* ---------- vista CANDIDATO ---------- */
+function viewCandidato(){
+  const c = cand(curId());
+  if(!c) return `<div class="intro"><span class="eyebrow">Vista del candidato</span><h2>Tu cuenta se borró</h2>
+    <p>Borramos tu perfil y tus datos de Factor-Gente. Si algún día buscas trabajo otra vez, puedes registrarte de nuevo.</p></div>
+    <div class="actions"><button type="button" class="btn primary" data-act="nuevo-perfil">Crear perfil nuevo</button></div>`;
+  const u=c.ultimo, adm=c.area!=='Operativo', chk=c.nuevo?'':' checked';
+  const mini=c.pruebas.mini;
+  const publicas=S.vacantes.filter(v=>v.pub==='anonima' && v.estado!=='Cubierta');
+  const banner = S.asistido ? `<div class="banner"><span><b>Registro asistido.</b> Estás capturando los datos de otra persona. Al guardar, aparece en tu panel.</span>
+    <button type="button" class="btn sm" data-act="fin-asistido">Terminar y volver al panel</button></div>` : '';
+  return `${banner}<div class="intro"><span class="eyebrow">Vista del candidato</span><h2>${S.asistido?'Nuevo candidato':'Mi perfil de trabajo'}</h2>
+    <p>Llénalo desde tu celular en unos 5 minutos. Factor-Gente revisa tu perfil y te busca la vacante que te queda. Para ti el servicio es gratis.</p></div>
+  <div class="grid">
+   <form class="card" id="form-cand" novalidate>
+    <fieldset><legend>Tus datos</legend>
+      <div class="row">
+        <label class="f">Nombre completo<input type="text" id="cf-nombre" value="${esc(c.nombre)}"></label>
+        <label class="f">Edad<input type="number" id="cf-edad" min="18" max="80" value="${c.edad}"><span class="hint">Solo mayores de 18 años.</span></label>
+        <label class="f">Sexo <span class="private">Solo lo ve Factor-Gente</span>
+          <select id="cf-sexo">${opts(['Mujer','Hombre','Prefiero no decir'],c.sexo)}</select></label>
+      </div>
+      <div class="row">
+        <label class="f">WhatsApp<input type="tel" id="cf-tel" value="${esc(c.tel)}"></label>
+        <label class="f">Correo (opcional)<input type="email" id="cf-correo" value="${esc(c.correo)}"></label>
+      </div>
+      <div class="row">
+        <label class="f">Municipio donde vives<select id="cf-muni">${opts(MUNI,c.municipio)}</select></label>
+        <label class="f">Colonia<input type="text" id="cf-col" value="${esc(c.colonia)}"></label>
+        <label class="f">Último grado de estudios<select id="cf-esco">${opts(ESCO,c.esco)}</select></label>
+      </div>
+      <p class="hint">Tu INE o CURP solo se piden si avanzas en un proceso de selección.</p>
+    </fieldset>
+    <fieldset><legend>¿En qué área trabajas?</legend>
+      <div class="radios">${Object.keys(HAB).map(a=>`<label><input type="radio" name="cf-area" value="${a}"${c.area===a?' checked':''}> ${a}</label>`).join('')}</div>
+      <p class="hint">Operativo: producción, almacén, mantenimiento, limpieza. Administrativo: oficina, contabilidad, ventas, RH. Supervisión: jefe de línea, supervisor, encargado de turno o de área.</p>
+      <label class="f">Puesto que buscas<input type="text" id="cf-puesto" value="${esc(c.puesto)}"></label>
+      <label class="f">¿Qué sabes hacer? Describe tus funciones<textarea id="cf-func">${esc(c.funciones)}</textarea></label>
+      <div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">Habilidades (toca las que tengas o agrega otras)</span>
+        <div class="chips" id="cf-chips">${chipsHTML(c.area,c.habilidades,'cand')}</div>${otraHTML('cand','Pespunte de bota vaquera')}</div>
+      <label class="f" id="cf-carta-w"${adm?'':' hidden'}>Carta de presentación corta
+        <textarea id="cf-carta" placeholder="Cuéntanos en 3 o 4 líneas quién eres y qué buscas.">${esc(c.carta)}</textarea>
+        <span class="hint">Para puestos administrativos y de supervisión.</span></label>
+    </fieldset>
+    <fieldset><legend>Tu último trabajo</legend>
+      <div class="row">
+        <label class="f">Puesto<input type="text" id="cf-u-puesto" value="${esc(u.puesto)}"></label>
+        <label class="f">Empresa <span class="private">No se comparte</span><input type="text" id="cf-u-emp" value="${esc(u.empresa)}"></label>
+        <label class="f">¿Cuánto tiempo estuviste?<select id="cf-u-tiempo">${opts(['Menos de 6 meses','6 a 12 meses','1 a 3 años','3 años o más'],u.tiempo)}</select></label>
+      </div>
+      <label class="f">¿Qué hacías?<textarea id="cf-u-func">${esc(u.funciones)}</textarea></label>
+      <div class="row">
+        <label class="f">¿Cómo te pagaban?<select id="cf-u-tipo">${opts(PAGO,u.tipo)}</select></label>
+        <label class="f">Lo que ganabas al mes (aprox.)<input type="number" id="cf-u-sueldo" step="100" value="${u.sueldo}"><span class="hint">Si te pagaban por semana o a destajo: lo de una semana normal × 4.3</span></label>
+        <label class="f">¿Por qué saliste?<select id="cf-u-salida">${opts(SALIDA,u.salida)}</select></label>
+      </div>
+    </fieldset>
+    <fieldset><legend>Lo que buscas</legend>
+      <div class="row">
+        <label class="f">Sueldo mensual mínimo<input type="number" id="cf-pmin" step="100" value="${c.pmin}"></label>
+        <label class="f">Sueldo mensual deseado<input type="number" id="cf-pmax" step="100" value="${c.pmax}"></label>
+        <label class="f">Forma de pago que prefieres<select id="cf-tipo">${opts(['Cualquiera',...PAGO],c.tipoPref)}</select></label>
+      </div>
+      <div class="row">
+        <label class="f">Horario<select id="cf-hor">${opts(['Matutino','Vespertino','Mixto','Cualquiera'],c.horario)}</select></label>
+        <label class="f">¿Cuándo puedes empezar?<select id="cf-disp">${opts(['Inmediata','15 días','1 mes'],c.disp)}</select></label>
+        <label class="f">¿Tienes transporte propio?<select id="cf-transp">${opts(TRANSP,c.transp)}</select></label>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">¿En qué municipios puedes trabajar?</span>
+        <div class="checks inline">${MUNI.map(m=>`<label><input type="checkbox" name="cf-mov" value="${esc(m)}"${c.mov.includes(m)?' checked':''}> ${esc(m)}</label>`).join('')}</div></div>
+    </fieldset>
+    <fieldset><legend>Inclusión <span class="hint">(opcional)</span></legend>
+      <p class="hint">Algunas empresas abren vacantes para personas con discapacidad o adultos mayores. Llénalo solo si quieres que te tomemos en cuenta. Es un dato sensible: solo lo ve Factor-Gente.</p>
+      <div class="checks"><label><input type="checkbox" id="cf-inc"${c.inclusion.length?' checked':''}> <span>Tengo una discapacidad y quiero que me consideren para vacantes incluyentes.</span></label></div>
+      <label class="f">¿Necesitas algún ajuste para trabajar? (opcional)<input type="text" id="cf-ajuste" value="${esc(c.ajuste)}" placeholder="Ej. acceso sin escalones, instrucciones por escrito"></label>
+    </fieldset>
+    <fieldset><legend>Privacidad y permisos</legend>
+      <div class="checks">
+        <label><input type="checkbox" id="cf-aviso"${chk}> <span>Leí el aviso de privacidad y confirmo que soy mayor de 18 años. <b>Obligatorio.</b></span></label>
+        <label><input type="checkbox" id="cf-comp"${chk}> <span>Acepto que Factor-Gente comparta mi perfil, sin mis datos de contacto, con empresas que buscan personal. <b>Obligatorio.</b></span></label>
+        <label><input type="checkbox" id="cf-c-pruebas"${c.consent.pruebas?' checked':''}> <span>Acepto contestar pruebas de personalidad si me las asignan. Mis respuestas solo las ve Factor-Gente; a la empresa le llega un resumen. Opcional.</span></label>
+        <label><input type="checkbox" id="cf-c-serv"${c.consent.servicios?' checked':''}> <span>Acepto que me ofrezcan otros servicios de la consultora: legal, fiscal, contable y organizacional. Opcional.</span></label>
+      </div>
+      ${S.asistido?'<p class="note">Registro asistido: lee el aviso en voz alta y marca cada casilla solo si la persona está de acuerdo.</p>':''}
+      ${AVISO}
+      ${!c.nuevo && !S.asistido ? (S.confirmBorrar
+        ? `<div class="confirm" role="alert"><b>¿Seguro que quieres borrar tu cuenta?</b><span>Se borran tu perfil, tus pruebas y tus postulaciones. No se puede deshacer.</span>
+            <div class="actions"><button type="button" class="btn sm danger fill" data-act="borrar-si">Sí, borrar todo</button><button type="button" class="btn sm" data-act="borrar-no">Cancelar</button></div></div>`
+        : `<div class="actions"><button type="button" class="btn sm danger" data-act="borrar">Borrar mi cuenta y mis datos</button></div>`) : ''}
+    </fieldset>
+    <div class="actions"><button type="submit" class="btn primary">${S.asistido?'Guardar candidato':'Guardar mi perfil'}</button><span id="cf-msg"></span></div>
+   </form>
+
+   <div class="stack">
+    ${S.asistido ? `<section class="card"><h3>Cómo hacer el registro asistido</h3>
+      <p class="hint">1. Pregunta los datos y escríbelos tal cual te los dice la persona.</p>
+      <p class="hint">2. Lee en voz alta el aviso de privacidad y los permisos.</p>
+      <p class="hint">3. Guarda. Después puedes asignarle pruebas desde el panel si dio permiso.</p></section>` : `
+    <section class="card" aria-labelledby="h-pruebas">
+      <div class="card-h"><h3 id="h-pruebas">Mis pruebas</h3>${mini.estado==='completada'?'<span class="pill ok">Completada</span>':mini.estado==='asignada'?'<span class="pill warn">Pendiente</span>':''}</div>
+      ${testBlock(c)}
+    </section>
+    <section class="card" aria-labelledby="h-vac">
+      <div class="card-h"><h3 id="h-vac">Vacantes disponibles</h3><p>${publicas.length} publicadas</p></div>
+      <div class="list">${publicas.map(v=>`<div class="item">
+        <div class="item-h"><strong>${esc(v.puesto)}</strong><span class="pill info">${v.area}</span></div>
+        <div class="meta"><span>${esc(v.zona)}</span><span class="mono">${money(v.smin)}–${money(v.smax)}/mes</span><span>${esc(v.tipo)}</span><span>${esc(v.horario)}</span></div>
+        <div class="meta"><span>${v.prest.map(esc).join(' · ')}${v.comedor==='Sí'?' · Comedor':''}${v.transporte==='Sí'?' · Transporte':''}</span>${v.incluyente?'<span class="pill lea">Vacante incluyente</span>':''}</div>
+        <div class="actions"><button type="button" class="btn sm${c.interes.includes(v.id)?' primary':''}" data-act="interes" data-id="${v.id}">${c.interes.includes(v.id)?'Te interesa ✓':'Me interesa'}</button></div>
+      </div>`).join('') || '<p class="empty">No hay vacantes publicadas por ahora.</p>'}</div>
+      <p class="hint">El nombre de la empresa se da a conocer cuando avanzas en el proceso.</p>
+    </section>
+    ${servicesCard('cand')}`}
+   </div>
+  </div>`;
+}
+
+function testBlock(c){
+  const mini=c.pruebas.mini;
+  if(mini.estado==='completada') return `<p>Gracias. Tus respuestas al cuestionario de personalidad ya llegaron a Factor-Gente. Si tu perfil encaja con una vacante, te contactaremos para las siguientes pruebas en línea.</p>`;
+  if(mini.estado!=='asignada') return `<p class="empty">Por ahora no tienes pruebas. Factor-Gente te asigna una cuando tu perfil encaja con una vacante${c.consent.pruebas?'':' y si diste permiso en "Privacidad y permisos"'}.</p>`;
+  if(!S.testOpen) return `<p><b>Cuestionario de personalidad</b> · 20 frases · unos 5 minutos.</p>
+    <p class="hint">No hay respuestas buenas ni malas. Contesta cómo eres normalmente, no cómo te gustaría ser.</p>
+    <div class="actions"><button type="button" class="btn primary" data-act="test-open">Empezar</button></div>`;
+  const done=S.testAns.filter(Boolean).length;
+  return `<div class="progress" style="--w:${done/20*100}%"><i></i></div><p class="hint mono">${done} de 20</p>
+    <div>${ITEMS.map(([t],i)=>`<div class="q"><p>${i+1}. ${esc(t)}</p><div class="scale" role="group" aria-label="Respuesta ${i+1}">
+      ${SCALE.map((s,k)=>`<button type="button" data-act="ans" data-i="${i}" data-v="${k+1}" aria-pressed="${S.testAns[i]===k+1}">${s}</button>`).join('')}</div></div>`).join('')}</div>
+    <div class="actions"><button type="button" class="btn primary" data-act="test-send"${done<20?' disabled':''}>Enviar respuestas</button><span class="hint">Basado en el Mini-IPIP, cuestionario de uso libre con respaldo científico.</span></div>`;
+}
+
+/* ---------- vista EMPRESA ---------- */
+function viewEmpresa(){
+  const mias=S.vacantes.filter(v=>v.empresa===EMP);
+  return `<div class="intro"><span class="eyebrow">Vista de la empresa · ${esc(EMP)}</span><h2>Solicitar personal</h2>
+    <p>Describe el puesto. Factor-Gente filtra su base de candidatos y le envía una terna que se apega al perfil. Solo paga si contrata.</p></div>
+  <div class="grid">
+   <form class="card" id="form-emp" novalidate>
+    <fieldset><legend>Empresa</legend>
+      <div class="row">
+        <label class="f">Nombre de la empresa<input type="text" id="ef-emp" value="${esc(EMP)}"></label>
+        <label class="f">Giro<input type="text" id="ef-giro" value="Fabricante de calzado de dama"></label>
+        <label class="f">Persona de contacto<input type="text" id="ef-cont" value="Lic. Gabriela Ruiz"></label>
+      </div>
+    </fieldset>
+    <fieldset><legend>El puesto</legend>
+      <div class="row">
+        <label class="f">Puesto<input type="text" id="ef-puesto" placeholder="Ej. Cortador de piel"></label>
+        <label class="f">¿Cuántas personas?<input type="number" id="ef-n" min="1" value="1"></label>
+        <label class="f">Municipio donde se trabaja<select id="ef-zona">${opts(MUNI)}</select></label>
+      </div>
+      <div class="radios">${Object.keys(HAB).map((a,i)=>`<label><input type="radio" name="ef-area" value="${a}"${i===0?' checked':''}> ${a}</label>`).join('')}</div>
+      <label class="f">¿Qué funciones hará?<textarea id="ef-func" placeholder="Ej. Corte de piel a mano y en suaje, aprovechamiento de material."></textarea></label>
+      <div class="row">
+        <label class="f">Preparación mínima<select id="ef-esco">${opts(['No se requiere',...ESCO])}</select></label>
+        <label class="f">Experiencia mínima<select id="ef-exp">${opts(['No se requiere','6 meses','1 año','2 años','3 años o más'])}</select></label>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">Habilidades que requiere</span>
+        <div class="chips" id="ef-chips">${chipsHTML('Operativo',[],'emp')}</div>${otraHTML('emp','Manejo de máquina de inyección')}</div>
+    </fieldset>
+    <fieldset><legend>Lo que ofrece</legend>
+      <div class="row">
+        <label class="f">Forma de pago<select id="ef-tipo">${opts(PAGO)}</select></label>
+        <label class="f">Sueldo mensual desde<input type="number" id="ef-smin" step="100" placeholder="10000"></label>
+        <label class="f">Sueldo mensual hasta<input type="number" id="ef-smax" step="100" placeholder="12500"></label>
+      </div>
+      <p class="hint">Si paga por semana o a destajo, calcula lo de una semana normal × 4.3. Consulta los sueldos de referencia de la zona en la columna derecha.</p>
+      <div class="row"><label class="f">Horario<select id="ef-hor">${opts(['Matutino','Vespertino','Mixto','Cualquiera'])}</select></label></div>
+      <div class="checks inline">${['IMSS','Aguinaldo superior a ley','Vales de despensa','Bono de puntualidad','Caja de ahorro'].map(p=>`<label><input type="checkbox" name="ef-prest" value="${p}"${p==='IMSS'?' checked':''}> ${p}</label>`).join('')}</div>
+      <div class="row">
+        <label class="f">¿Hay transporte?<select id="ef-trans">${opts(['No','Sí'])}</select></label>
+        <label class="f">¿Hay comedor?<select id="ef-com">${opts(['No','Sí'])}</select></label>
+      </div>
+      <div class="checks"><label><input type="checkbox" id="ef-inc"> <span>Vacante incluyente: abierta a personas con discapacidad o adultos mayores.</span></label></div>
+      <p class="hint">Contratar a personas con discapacidad o adultos mayores puede dar beneficios fiscales. Consúltalo con tu contador o con la consultora.</p>
+    </fieldset>
+    <fieldset><legend>Rotación del puesto</legend>
+      <div class="row">
+        <label class="f">¿Cuántas personas salieron de este puesto en los últimos 6 meses?<input type="number" id="ef-sal" min="0" value="0"></label>
+        <label class="f">Motivo principal de las salidas<select id="ef-mot">${opts(['Sueldo','Horario','Mejor oferta','Ambiente de trabajo','Distancia','No aplica'])}</select></label>
+      </div>
+      <p class="note">Con esto buscamos candidatos que sí se queden y cuidamos la garantía de reemplazo.</p>
+    </fieldset>
+    <fieldset><legend>Filtro interno <span class="private">No se publica</span></legend>
+      <p class="hint">La ley prohíbe negar un empleo por sexo, edad, estado civil, embarazo, religión, salud o apariencia. Si el puesto de verdad requiere sexo o edad, indícalo aquí y explica el motivo: solo Factor-Gente lo usa para filtrar.</p>
+      <div class="row">
+        <label class="f">Sexo<select id="ef-sexo">${opts(['Indistinto','Mujer','Hombre'])}</select></label>
+        <label class="f">Edad desde<input type="number" id="ef-emin" min="18" placeholder="Indistinto"></label>
+        <label class="f">Edad hasta<input type="number" id="ef-emax" min="18" placeholder="Indistinto"></label>
+      </div>
+      <label class="f">Motivo <span class="hint">(obligatorio si pides sexo o edad)</span><input type="text" id="ef-just" placeholder="Ej. el puesto atiende el vestidor de mujeres"></label>
+    </fieldset>
+    <fieldset><legend>Publicación</legend>
+      <div class="radios">
+        <label><input type="radio" name="ef-pub" value="anonima" checked> Publicar sin el nombre de la empresa</label>
+        <label><input type="radio" name="ef-pub" value="privada"> Privada: solo Factor-Gente la ve</label>
+      </div>
+      <div class="terms"><b>Condiciones del servicio (borrador)</b><ul>
+        <li>Operativo: cuota fija por persona colocada. Administrativo y supervisión: equivalente a un mes del sueldo ofrecido.</li>
+        <li>Se paga cuando la persona ingresa a trabajar.</li>
+        <li>Garantía: si la persona sale en los primeros 60 días, enviamos reemplazo sin costo.</li>
+        <li>Si la empresa contrata a un candidato presentado por Factor-Gente en los 12 meses siguientes, se cobra la colocación.</li>
+        <li>La empresa contrata directamente; Factor-Gente solo recluta y filtra.</li></ul></div>
+      <div class="checks"><label><input type="checkbox" id="ef-acepto"> <span>Acepto las condiciones del servicio.</span></label></div>
+    </fieldset>
+    <div class="actions"><button type="submit" class="btn primary">Enviar solicitud</button><span id="ef-msg"></span></div>
+   </form>
+
+   <div class="stack">
+    <section class="card" aria-labelledby="h-mias">
+      <div class="card-h"><h3 id="h-mias">Mis solicitudes</h3><p>${mias.length}</p></div>
+      <div class="list">${mias.map(empVacHTML).join('') || '<p class="empty">Aún no hay solicitudes.</p>'}</div>
+    </section>
+    ${refCard()}
+    ${servicesCard('emp')}
+   </div>
+  </div>`;
+}
+
+function empVacHTML(v){
+  const letras='ABC';
+  const terna=v.terna.map(id=>cand(id)).filter(Boolean).map((c,i)=>{
+    const r=c.pruebas.mini.res, lib=v.liberados.includes(c.id), quiere=v.interes.includes(c.id);
+    return `<div class="item" style="background:var(--surface)">
+      <div class="item-h"><strong>${lib?esc(c.nombre):'Candidato '+letras[i]}</strong>${lib?'<span class="pill ok">Contacto liberado</span>':quiere?'<span class="pill info">Pediste entrevista</span>':''}</div>
+      <div class="ficha">
+        <div><span>Último puesto</span>${esc(c.ultimo.puesto)} · ${esc(c.ultimo.tiempo)}</div>
+        <div><span>Estudios</span>${esc(c.esco)}</div>
+        <div><span>Pretende</span><b class="mono">${money(c.pmin)}–${money(c.pmax)}</b></div>
+        <div><span>Forma de pago</span>${esc(c.tipoPref)}</div>
+        <div><span>Disponibilidad</span>${esc(c.disp)}</div>
+        <div><span>Puede trabajar en</span>${c.mov.map(esc).join(', ')}</div>
+        <div><span>Habilidades</span>${c.habilidades.map(esc).join(', ')}</div>
+        <div><span>Perfil</span>${r?esc(perfilTexto(r)):'Sin prueba'}</div>
+      </div>
+      ${c.carta?`<p class="hint">“${esc(c.carta)}”</p>`:''}
+      ${lib?`<p class="mono">WhatsApp: ${esc(c.tel)}</p>`:`<div class="actions"><button type="button" class="btn sm${quiere?'':' primary'}" data-act="emp-quiere" data-v="${v.id}" data-c="${c.id}"${quiere?' disabled':''}>${quiere?'Solicitud enviada':'Quiero entrevistarlo'}</button></div>`}
+    </div>`;}).join('');
+  return `<div class="item">
+    <div class="item-h"><strong>${esc(v.puesto)} <span class="hint">× ${v.n}</span></strong>${vacPill(v.estado)}</div>
+    <div class="meta"><span>Alta ${fmtDate(v.alta)}</span><span class="mono">${money(v.smin)}–${money(v.smax)}</span><span>${esc(v.tipo)}</span><span>${v.pub==='anonima'?'Publicada sin nombre':'Privada'}</span></div>
+    ${v.terna.length?`<p class="hint">Terna recibida. Los datos de contacto se liberan cuando confirmas la entrevista.</p>${terna}`:'<p class="hint">Factor-Gente está buscando candidatos.</p>'}
+  </div>`;
+}
+
+/* ---------- vista PANEL JC ---------- */
+function llega(c,v){ return c.mov.includes(v.zona); }
+function match(c,v){
+  if(c.area!==v.area) return 0;
+  let s=35;
+  const ch=c.habilidades.map(norm), ov=v.habilidades.filter(h=>ch.includes(norm(h))).length;
+  s+= v.habilidades.length ? 25*ov/v.habilidades.length : 25;
+  if(c.pmin<=v.smax && c.pmax>=v.smin) s+=20; else if(c.pmin<=v.smax*1.1) s+=8;
+  if(v.horario==='Cualquiera'||c.horario==='Cualquiera'||c.horario===v.horario) s+=10;
+  const r=c.pruebas.mini.res; if(r) s+=10*r.C/100;
+  if(!llega(c,v)) s-= (v.transporte==='Sí'||c.transp!=='No') ? 8 : 20;
+  if(v.incluyente && isInc(c)) s+=5;
+  return Math.max(1,Math.round(Math.min(s,100)));
+}
+function pasaInterno(c,v){
+  if(v.sexo!=='Indistinto' && c.sexo!==v.sexo) return false;
+  if(v.edadMin && c.edad<v.edadMin) return false;
+  if(v.edadMax && c.edad>v.edadMax) return false;
+  return true;
+}
+
+function viewPanel(){
+  const todos=base();
+  const disp=todos.filter(c=>c.estado==='Disponible').length;
+  const abiertas=S.vacantes.filter(v=>v.estado!=='Cubierta').length;
+  const col=todos.filter(c=>c.coloc);
+  const mad=col.filter(c=>(today-new Date(c.coloc.ingreso))/DAY>=90);
+  const siguen=mad.filter(c=>c.coloc.checks[90]===true).length;
+  const v=vac(S.selVac)||S.vacantes[0];
+  const ref=refFor(v.puesto);
+  const pend=S.vacantes.flatMap(x=>x.interes.filter(id=>!x.liberados.includes(id) && cand(id)).map(id=>({v:x,c:cand(id)})));
+  const interno=(v.sexo!=='Indistinto'||v.edadMin||v.edadMax);
+  return `<div class="intro"><span class="eyebrow">Panel de Factor-Gente</span><h2>Filtro y colocación</h2>
+    <p>Elige una vacante, revisa los candidatos sugeridos, asigna pruebas y arma la terna para la empresa.</p></div>
+  <div class="kpis">
+    <div class="kpi"><span>Candidatos disponibles</span><b>${disp}</b><small>de ${todos.length} registrados</small></div>
+    <div class="kpi"><span>Vacantes abiertas</span><b>${abiertas}</b><small>${S.vacantes.filter(x=>x.estado==='Terna enviada').length} con terna enviada</small></div>
+    <div class="kpi"><span>Colocaciones</span><b>${col.length}</b><small>en seguimiento</small></div>
+    <div class="kpi"><span>Siguen a 90 días</span><b>${mad.length?Math.round(siguen/mad.length*100)+'%':'—'}</b><small>${siguen} de ${mad.length} con 90 días</small></div>
+  </div>
+  ${pend.length?`<section class="card" style="margin-bottom:20px;border-color:var(--accent)"><div class="card-h"><h3>Empresas que quieren entrevistar</h3><span class="pill info">${pend.length}</span></div>
+    <div class="list">${pend.map(p=>`<div class="item"><div class="item-h"><span><b>${esc(p.v.empresa)}</b> quiere entrevistar a <b>${esc(p.c.nombre)}</b> · ${esc(p.v.puesto)}</span>
+      <div class="actions"><button type="button" class="btn sm primary" data-act="liberar" data-v="${p.v.id}" data-c="${p.c.id}">Liberar contacto</button></div></div></div>`).join('')}</div></section>`:''}
+  <div class="grid">
+    <div class="stack">
+      <section class="card" aria-labelledby="h-sug">
+        <div class="card-h"><h3 id="h-sug">Candidatos sugeridos · ${esc(v.puesto)}</h3>
+          <div class="actions">
+            <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-act="filtros"${S.filtrosInternos?' checked':''}> Filtro interno (sexo / edad)</label>
+            <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-act="soloinc"${S.soloInc?' checked':''}> Solo perfiles de inclusión</label>
+          </div></div>
+        <div class="meta"><span>${esc(v.empresa)}</span><span>${esc(v.zona)}</span><span class="mono">${money(v.smin)}–${money(v.smax)}</span><span>${esc(v.tipo)}</span><span>Busca: ${v.habilidades.map(esc).join(', ')||'—'}</span>
+          ${v.incluyente?'<span class="pill lea">Vacante incluyente</span>':''}
+          ${ref && v.smax && v.smax<ref.min?`<span class="pill warn">Sueldo bajo vs. zona (${money(ref.min)}–${money(ref.max)})</span>`:''}
+          ${v.salidas>=3?`<span class="pill warn">Rotación alta: ${v.salidas} salidas en 6 meses (${esc(v.motivo)})</span>`:''}</div>
+        ${interno?`<p class="note"><span class="private">Filtro interno:</span> ${esc(v.sexo)}${v.edadMin||v.edadMax?`, ${v.edadMin||'?'}–${v.edadMax||'?'} años`:''}. Motivo que dio la empresa: “${esc(v.just)||'sin motivo'}”. Si el motivo no justifica el requisito, coméntalo con la empresa antes de filtrar.</p>`:''}
+        ${sugeridosTabla(v)}
+        <div class="actions"><button type="button" class="btn primary" data-act="enviar-terna" data-v="${v.id}"${v.terna.length?'':' disabled'}>Enviar terna a la empresa (${v.terna.length}/3)</button>
+          ${v.estado!=='Cubierta' && v.liberados.length && cand(v.liberados[0])?`<button type="button" class="btn" data-act="contratar" data-v="${v.id}">Marcar contratado: ${esc(cand(v.liberados[0]).nombre)}</button>`:''}<span id="pt-msg"></span></div>
+      </section>
+      ${S.selCand?detalleCand(cand(S.selCand)):''}
+      <section class="card" aria-labelledby="h-seg">
+        <div class="card-h"><h3 id="h-seg">Seguimiento de colocados</h3><p>Garantía: reemplazo sin costo si sale antes de 60 días</p></div>
+        ${segTabla(col)}
+      </section>
+    </div>
+    <div class="stack">
+      <section class="card" aria-labelledby="h-vacs">
+        <div class="card-h"><h3 id="h-vacs">Vacantes</h3><p>${S.vacantes.length}</p></div>
+        <div class="list">${S.vacantes.map(x=>`<button type="button" class="item${x.id===v.id?' sel':''}" data-act="selvac" data-id="${x.id}">
+          <span class="item-h"><strong>${esc(x.puesto)}</strong>${vacPill(x.estado)}</span>
+          <span class="meta"><span>${esc(x.empresa)}</span><span>${x.area}</span><span>${x.pub==='anonima'?'Publicada':'Privada'}</span></span></button>`).join('')}</div>
+      </section>
+      <section class="card" aria-labelledby="h-dif">
+        <div class="card-h"><h3 id="h-dif">Difusión y registro</h3></div>
+        <div class="poster">
+          <div class="t"><span class="mark">${logoSVG}Factor<i>·</i>Gente</span>
+            <b>¿Buscas trabajo en SFR, Purísima o León?</b>
+            <span>Regístrate gratis desde tu celular. Nosotros te buscamos la vacante que te queda.</span>
+            <span class="mono url">factorgente.jcflorido.me</span></div>
+          <div class="qr" id="qr" role="img" aria-label="Código QR para registrarse"></div>
+        </div>
+        <p class="hint">Vista previa del cartel para tiendas, paradas y fábricas. El QR lleva a la página de registro; la dirección es de ejemplo hasta publicar la app.</p>
+        <div class="actions"><button type="button" class="btn primary" data-act="asistido">Registrar a alguien (asistido)</button></div>
+        <p class="hint">Para quien no puede llenar el formulario: tú capturas sus datos mientras platican.</p>
+      </section>
+      ${refCard()}
+      <section class="card" aria-labelledby="h-leads">
+        <div class="card-h"><h3 id="h-leads">Interesados en la consultora</h3><p>${S.leads.length}</p></div>
+        <div class="list">${S.leads.map(l=>`<div class="item"><div class="item-h"><strong>${esc(l.nombre)}</strong><span class="pill lea">${l.tipo}</span></div>
+          <div class="meta"><span>${l.servicios.map(esc).join(', ')}</span><span>Vía: ${esc(l.via)}</span>${l.tel?`<span class="mono">${esc(l.tel)}</span>`:''}<span>${fmtDate(l.fecha)}</span></div></div>`).join('')}</div>
+      </section>
+      <section class="card"><h3>Pruebas</h3>
+        <p class="hint"><b>Fase 1 (en la app):</b> cuestionario corto de personalidad (Mini-IPIP, 20 frases, uso libre). Solo lo contestan los candidatos a quienes se lo asignas y que dieron permiso.</p>
+        <p class="hint"><b>Fase 2 (fuera de la app):</b> pruebas en línea con licencia e interpretación por psicólogo(a) con cédula.</p></section>
+    </div>
+  </div>`;
+}
+
+function sugeridosTabla(v){
+  let rows=base().filter(c=>c.estado!=='Colocado' && c.estado!=='Inactivo')
+    .map(c=>({c,s:match(c,v),ok:pasaInterno(c,v)})).filter(x=>x.s>0);
+  if(S.filtrosInternos) rows=rows.filter(x=>x.ok);
+  if(S.soloInc) rows=rows.filter(x=>isInc(x.c));
+  rows.sort((a,b)=>b.s-a.s);
+  if(!rows.length) return '<p class="empty">No hay candidatos del área de esta vacante con estos filtros.</p>';
+  return `<div class="tbl"><table><thead><tr><th>Candidato</th><th>Último puesto</th><th>Pretende</th><th>Prueba</th><th>Coincidencia</th><th></th></tr></thead><tbody>
+  ${rows.map(({c,s})=>{const m=c.pruebas.mini, en=v.terna.includes(c.id);
+    const prueba = m.estado==='completada'?`<span class="pill ok">Resp. ${m.res.C}</span>`:m.estado==='asignada'?'<span class="pill warn">Asignada</span>'
+      : c.consent.pruebas?`<button type="button" class="btn sm" data-act="asignar" data-id="${c.id}">Asignar</button>`:'<span class="pill bad">Sin permiso</span>';
+    return `<tr><td><button type="button" class="btn sm" style="border:0;padding:0;background:none;color:var(--accent)" data-act="selcand" data-id="${c.id}">${esc(c.nombre)}</button>
+        <div class="hint">${c.edad} años · ${esc(c.municipio)}${c.interes.includes(v.id)?' · <b>se interesó</b>':''}</div>
+        <div class="meta">${llega(c,v)?'':`<span class="pill warn">No marcó ${esc(v.zona)}</span>`}${isInc(c)?'<span class="pill lea">Inclusión</span>':''}${c.asistido?'<span class="pill info">Asistido</span>':''}</div></td>
+      <td>${esc(c.ultimo.puesto)}<div class="hint">${esc(c.ultimo.tiempo)} · ${esc(c.ultimo.tipo)} · ${money(c.ultimo.sueldo)}</div></td>
+      <td class="mono">${money(c.pmin)}–${money(c.pmax)}</td>
+      <td>${prueba}</td>
+      <td><div class="score" style="--w:${s}%"><span class="mono">${s}%</span><i></i></div></td>
+      <td><button type="button" class="btn sm${en?' primary':''}" data-act="terna" data-v="${v.id}" data-c="${c.id}"${!en&&v.terna.length>=3?' disabled':''}>${en?'En terna ✓':'+ Terna'}</button></td></tr>`;}).join('')}
+  </tbody></table></div>`;
+}
+
+function detalleCand(c){
+  if(!c) return '';
+  const r=c.pruebas.mini.res;
+  return `<section class="card" aria-labelledby="h-det">
+    <div class="card-h"><h3 id="h-det">${esc(c.nombre)}</h3><div class="actions">${estadoPill(c.estado)}
+      <select id="det-estado" aria-label="Estado del candidato" data-id="${c.id}">${opts(['Disponible','En proceso','Colocado','Inactivo'],c.estado)}</select>
+      <button type="button" class="btn sm" data-act="cerrar-det">Cerrar</button></div></div>
+    <div class="ficha">
+      <div><span>Edad · sexo</span>${c.edad} · ${esc(c.sexo)}</div><div><span>WhatsApp</span><span class="mono">${esc(c.tel)}</span></div>
+      <div><span>Vive en</span>${esc(c.municipio)}</div><div><span>Estudios</span>${esc(c.esco)}</div>
+      <div><span>Área · puesto</span>${c.area} · ${esc(c.puesto)}</div><div><span>Registro</span>${fmtDate(c.registro)}${c.asistido?' (asistido)':''}</div>
+      <div><span>Puede trabajar en</span>${c.mov.map(esc).join(', ')}</div><div><span>Transporte propio</span>${esc(c.transp)}</div>
+      <div><span>Forma de pago</span>Antes: ${esc(c.ultimo.tipo)} · Prefiere: ${esc(c.tipoPref)}</div>
+      <div><span>Permisos</span>Pruebas: ${c.consent.pruebas?'sí':'no'} · Servicios: ${c.consent.servicios?'sí':'no'}</div>
+    </div>
+    ${isInc(c)?`<p class="note"><span class="private">Inclusión (dato sensible):</span> ${c.inclusion.length?'Persona con discapacidad. ':''}${c.edad>=60?'Adulto mayor. ':''}${c.ajuste?'Ajuste: '+esc(c.ajuste):''}</p>`:''}
+    <p><b>Funciones:</b> ${esc(c.funciones)}</p>
+    <p><b>Último trabajo:</b> ${esc(c.ultimo.puesto)}${c.ultimo.empresa?' en '+esc(c.ultimo.empresa):''}, ${esc(c.ultimo.tiempo)}. ${esc(c.ultimo.funciones)} Ganaba ${money(c.ultimo.sueldo)} al mes. Salió por: ${esc(c.ultimo.salida)}.</p>
+    ${c.carta?`<p><b>Carta:</b> “${esc(c.carta)}”</p>`:''}
+    <div><span class="eyebrow">Cuestionario de personalidad</span></div>
+    ${r?`<div class="bars">${TRAITS.map(([k,n])=>`<div class="bar-r"><span>${n}</span><i style="--w:${r[k]}%"></i><span class="mono">${r[k]}</span></div>`).join('')}</div>
+      <p class="note">Lectura: ${esc(perfilTexto(r))}. Resultado orientativo, no es diagnóstico. Escala 0–100.</p>`
+      : `<p class="empty">${c.pruebas.mini.estado==='asignada'?'Asignada, esperando respuestas.':c.consent.pruebas?'Sin prueba asignada.':'No dio permiso para pruebas.'}</p>`}
+  </section>`;
+}
+
+function segTabla(col){
+  if(!col.length) return '<p class="empty">Aún no hay colocaciones.</p>';
+  const cell=(c,d)=>{const dias=(today-new Date(c.coloc.ingreso))/DAY, v=c.coloc.checks[d];
+    if(dias<d && v==null) return `<span class="hint mono">en ${Math.ceil(d-dias)} d</span>`;
+    return `<select data-act="check" data-id="${c.id}" data-d="${d}" aria-label="¿Sigue a los ${d} días?">${['','Sigue','Salió'].map((o,i)=>`<option value="${i}"${(v===true&&i===1)||(v===false&&i===2)||(v==null&&i===0)?' selected':''}>${o||'¿?'}</option>`).join('')}</select>`;};
+  return `<div class="tbl"><table><thead><tr><th>Persona</th><th>Puesto</th><th>Ingreso</th><th>30 d</th><th>60 d</th><th>90 d</th><th></th></tr></thead><tbody>
+  ${col.map(c=>{const ch=c.coloc.checks, gar=ch[30]===false||ch[60]===false;
+    return `<tr><td>${esc(c.nombre)}</td><td>${esc(c.coloc.vac)}</td><td>${fmtDate(c.coloc.ingreso)}</td><td>${cell(c,30)}</td><td>${cell(c,60)}</td><td>${cell(c,90)}</td>
+    <td>${gar?'<span class="pill bad">Aplica reemplazo</span>':ch[90]===true?'<span class="pill ok">Retenido</span>':''}</td></tr>`;}).join('')}
+  </tbody></table></div>`;
+}
+
+function drawQR(){
+  const box=document.getElementById('qr'); if(!box) return;
+  try{
+    if(typeof qrcode!=='function') throw 0;
+    const q=qrcode(0,'M'); q.addData('https://factorgente.jcflorido.me/registro'); q.make();
+    box.innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true});
+  }catch(e){ box.innerHTML='<span class="hint">QR</span>'; }
+}
+
+/* ---------- render y eventos ---------- */
+function render(){
+  document.querySelectorAll('[data-role]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.role===S.role));
+  app.innerHTML = S.role==='candidato' ? viewCandidato() : S.role==='empresa' ? viewEmpresa() : viewPanel();
+  if(S.role==='panel') drawQR();
+}
+const rerender = () => { save(); const y=scrollY; render(); scrollTo(0,y); };
+function finAsistido(){
+  const c=cand(S.asistId); if(c && c.nuevo) S.candidatos=S.candidatos.filter(x=>x.id!==S.asistId);
+  S.asistido=false; S.asistId=null;
+}
+
+document.querySelector('.seg').addEventListener('click', e=>{
+  const b=e.target.closest('[data-role]'); if(!b) return;
+  if(S.asistido && b.dataset.role!=='candidato') finAsistido();
+  S.role=b.dataset.role; S.confirmBorrar=false; save(); render(); scrollTo(0,0);
+});
+
+document.addEventListener('click', e=>{
+  const chip=e.target.closest('[data-chip]');
+  if(chip){ chip.setAttribute('aria-pressed', chip.getAttribute('aria-pressed')!=='true'); return; }
+  const b=e.target.closest('[data-act]'); if(!b || b.tagName==='INPUT' || b.tagName==='SELECT') return;
+  const a=b.dataset.act;
+  if(a==='add-hab') return addOtra(b.dataset.name);
+  if(a==='reset'){ S=seed(); save(); render(); scrollTo(0,0); return; }
+  if(a==='interes'){ const c=cand(curId()), i=c.interes.indexOf(b.dataset.id); i<0?c.interes.push(b.dataset.id):c.interes.splice(i,1); return rerender(); }
+  if(a==='test-open'){ S.testOpen=true; return rerender(); }
+  if(a==='ans'){ S.testAns[+b.dataset.i]=+b.dataset.v; return rerender(); }
+  if(a==='test-send'){ const c=cand(curId()); c.pruebas.mini={estado:'completada',res:scoreMini(S.testAns)}; S.testOpen=false; S.testAns=Array(20).fill(0); return rerender(); }
+  if(a==='borrar'){ S.confirmBorrar=true; return rerender(); }
+  if(a==='borrar-no'){ S.confirmBorrar=false; return rerender(); }
+  if(a==='borrar-si'){
+    S.candidatos=S.candidatos.filter(c=>c.id!==ME);
+    S.vacantes.forEach(v=>['terna','interes','liberados'].forEach(k=>v[k]=v[k].filter(id=>id!==ME)));
+    S.leads=S.leads.filter(l=>l.cid!==ME);
+    if(S.selCand===ME) S.selCand=null;
+    S.confirmBorrar=false; save(); render(); scrollTo(0,0); return;
+  }
+  if(a==='nuevo-perfil'){ S.candidatos.unshift(blankCand(ME,false)); save(); render(); scrollTo(0,0); return; }
+  if(a==='asistido'){ const id='c'+Date.now(); S.candidatos.push(blankCand(id,true)); S.asistido=true; S.asistId=id; S.role='candidato'; save(); render(); scrollTo(0,0); return; }
+  if(a==='fin-asistido'){ finAsistido(); S.role='panel'; save(); render(); scrollTo(0,0); return; }
+  if(a==='lead'){
+    const who=b.dataset.who, sv=readChecks('sv-'+who);
+    if(!sv.length) return flash('sv-msg-'+who,'Elige al menos un servicio.',true);
+    if(!val('sv-tel-'+who)) return flash('sv-msg-'+who,'Escribe tu WhatsApp o teléfono para poder contactarte.',true);
+    const c=who==='cand'?cand(curId()):null;
+    S.leads.unshift({nombre: c?(c.nombre||'Candidato'):EMP, cid:c?c.id:undefined, tipo: c?'Candidato':'Empresa', servicios:sv, via:val('sv-via-'+who), tel:val('sv-tel-'+who), fecha:hoy()});
+    save(); app.querySelectorAll(`[name="sv-${who}"]`).forEach(x=>x.checked=false);
+    return flash('sv-msg-'+who,'Listo. Te contactaremos pronto.');
+  }
+  if(a==='emp-quiere'){ const v=vac(b.dataset.v); if(!v.interes.includes(b.dataset.c)) v.interes.push(b.dataset.c); return rerender(); }
+  if(a==='selvac'){ S.selVac=b.dataset.id; S.selCand=null; return rerender(); }
+  if(a==='selcand'){ S.selCand=b.dataset.id; return rerender(); }
+  if(a==='cerrar-det'){ S.selCand=null; return rerender(); }
+  if(a==='asignar'){ const c=cand(b.dataset.id); if(c.consent.pruebas) c.pruebas.mini={estado:'asignada',res:null}; return rerender(); }
+  if(a==='terna'){ const v=vac(b.dataset.v), i=v.terna.indexOf(b.dataset.c); if(i<0){ if(v.terna.length<3) v.terna.push(b.dataset.c);} else v.terna.splice(i,1); return rerender(); }
+  if(a==='enviar-terna'){ const v=vac(b.dataset.v); v.estado='Terna enviada'; v.terna.forEach(id=>{const c=cand(id); if(c && c.estado==='Disponible') c.estado='En proceso';}); rerender(); return flash('pt-msg','Terna enviada a '+v.empresa+'.'); }
+  if(a==='liberar'){ const v=vac(b.dataset.v); if(!v.liberados.includes(b.dataset.c)) v.liberados.push(b.dataset.c); return rerender(); }
+  if(a==='contratar'){ const v=vac(b.dataset.v), c=cand(v.liberados[0]);
+    c.estado='Colocado'; c.coloc={vac:v.puesto+' · '+v.empresa, ingreso:hoy(), checks:{30:null,60:null,90:null}};
+    v.estado='Cubierta'; return rerender(); }
+});
+
+document.addEventListener('change', e=>{
+  const t=e.target;
+  if(t.name==='cf-area'){ document.getElementById('cf-chips').innerHTML=chipsHTML(t.value,readChips('cand'),'cand'); document.getElementById('cf-carta-w').hidden = t.value==='Operativo'; }
+  if(t.name==='ef-area'){ document.getElementById('ef-chips').innerHTML=chipsHTML(t.value,readChips('emp'),'emp'); }
+  if(t.dataset.act==='filtros'){ S.filtrosInternos=t.checked; rerender(); }
+  if(t.dataset.act==='soloinc'){ S.soloInc=t.checked; rerender(); }
+  if(t.id==='det-estado'){ cand(t.dataset.id).estado=t.value; rerender(); }
+  if(t.dataset.act==='check'){ const c=cand(t.dataset.id); c.coloc.checks[t.dataset.d]= t.value==='1'?true:t.value==='2'?false:null; rerender(); }
+});
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && e.target.id && e.target.id.startsWith('otra-')){ e.preventDefault(); addOtra(e.target.id.slice(5)); }
+});
+
+document.addEventListener('submit', e=>{
+  e.preventDefault();
+  if(e.target.id==='form-cand'){
+    if(!checked('cf-aviso') || !checked('cf-comp')) return flash('cf-msg','Para guardar, marca las dos casillas obligatorias de privacidad.',true);
+    if(!val('cf-nombre') || !val('cf-tel')) return flash('cf-msg','Escribe nombre y WhatsApp.',true);
+    if(!num('cf-edad') || num('cf-edad')<18) return flash('cf-msg','Factor-Gente solo registra personas mayores de 18 años.',true);
+    const mov=readChecks('cf-mov');
+    if(!mov.length) return flash('cf-msg','Marca al menos un municipio donde puedas trabajar.',true);
+    const c=cand(curId()), area=app.querySelector('[name="cf-area"]:checked').value;
+    Object.assign(c,{nombre:val('cf-nombre'),edad:num('cf-edad'),sexo:val('cf-sexo'),tel:val('cf-tel'),correo:val('cf-correo'),municipio:val('cf-muni'),colonia:val('cf-col'),esco:val('cf-esco'),
+      area,puesto:val('cf-puesto'),funciones:val('cf-func'),habilidades:readChips('cand'),carta:area!=='Operativo'?val('cf-carta'):'',
+      ultimo:{puesto:val('cf-u-puesto'),empresa:val('cf-u-emp'),tiempo:val('cf-u-tiempo'),funciones:val('cf-u-func'),sueldo:num('cf-u-sueldo'),salida:val('cf-u-salida'),tipo:val('cf-u-tipo')},
+      pmin:num('cf-pmin'),pmax:num('cf-pmax'),tipoPref:val('cf-tipo'),horario:val('cf-hor'),disp:val('cf-disp'),transp:val('cf-transp'),mov,
+      inclusion:checked('cf-inc')?['Discapacidad']:[],ajuste:val('cf-ajuste'),
+      consent:{pruebas:checked('cf-c-pruebas'),servicios:checked('cf-c-serv')},nuevo:false});
+    if(!c.consent.pruebas && c.pruebas.mini.estado==='asignada') c.pruebas.mini={estado:null,res:null};
+    rerender(); return flash('cf-msg', S.asistido ? 'Candidato registrado. Ya aparece en tu panel.' : 'Perfil guardado. Ya aparece en el panel de Factor-Gente.');
+  }
+  if(e.target.id==='form-emp'){
+    if(!val('ef-puesto') || !val('ef-func')) return flash('ef-msg','Escribe el puesto y sus funciones.',true);
+    const pideInterno = val('ef-sexo')!=='Indistinto' || num('ef-emin') || num('ef-emax');
+    if(pideInterno && !val('ef-just')) return flash('ef-msg','Explica el motivo por el que el puesto requiere sexo o edad.',true);
+    if((num('ef-emin') && num('ef-emin')<18) || (num('ef-emax') && num('ef-emax')<18)) return flash('ef-msg','Las vacantes son solo para mayores de 18 años.',true);
+    if(!checked('ef-acepto')) return flash('ef-msg','Para enviar, acepta las condiciones del servicio.',true);
+    S.vacantes.unshift({id:'v'+Date.now(),empresa:val('ef-emp')||EMP,giro:val('ef-giro'),contacto:val('ef-cont'),puesto:val('ef-puesto'),area:app.querySelector('[name="ef-area"]:checked').value,n:num('ef-n')||1,zona:val('ef-zona'),
+      funciones:val('ef-func'),esco:val('ef-esco'),exp:val('ef-exp'),habilidades:readChips('emp'),tipo:val('ef-tipo'),smin:num('ef-smin'),smax:num('ef-smax'),horario:val('ef-hor'),
+      prest:readChecks('ef-prest'),transporte:val('ef-trans'),comedor:val('ef-com'),incluyente:checked('ef-inc'),salidas:num('ef-sal')||0,motivo:val('ef-mot'),
+      sexo:val('ef-sexo'),edadMin:num('ef-emin'),edadMax:num('ef-emax'),just:pideInterno?val('ef-just'):'',pub:app.querySelector('[name="ef-pub"]:checked').value,estado:'Abierta',alta:hoy(),terna:[],interes:[],liberados:[]});
+    S.selVac=S.vacantes[0].id;
+    rerender(); return flash('ef-msg','Solicitud enviada. Factor-Gente ya está buscando candidatos.');
+  }
+});
+
+render();
+})();
+</script>

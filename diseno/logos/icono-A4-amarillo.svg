@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 120 120">
+  <title>Factor·Gente — Ícono de app A4</title>
+  <rect width="120" height="120" rx="26" fill="#12396A"/>
+  <g transform="translate(20,20)">
+    <path d="M15 48 L32 65" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" fill="none"/>
+    <circle cx="14" cy="27" r="10" fill="#FFFFFF"/>
+    <path d="M32 65 L60 33" stroke="#F2C14E" stroke-width="14" stroke-linecap="round" fill="none"/>
+    <circle cx="67" cy="13" r="10" fill="#F2C14E"/>
+  </g>
+</svg>
