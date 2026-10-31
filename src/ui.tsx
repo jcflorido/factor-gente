@@ -1,6 +1,7 @@
-import { useState, type ReactNode } from 'react';
-import { HAB, SERVICIOS, norm } from './lib/catalog';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { HAB, SERVICIOS, fmtDate, norm } from './lib/catalog';
 import { supabase } from './lib/supabase';
+import type { Mensaje } from './lib/types';
 
 export function toast(msg: string, err = false) {
   const box = document.getElementById('toasts');
@@ -127,6 +128,58 @@ export function ServicesCard({ tipo, nombre, tel, candidateId, companyId }: { ti
       <F label="¿Cómo prefieres que te contactemos?"><Sel value={via} onChange={setVia} options={['WhatsApp', 'Llamada', 'Correo', 'Mandarme la página web']} /></F>
       <div className="actions"><button type="button" className="btn aqua" disabled={busy} onClick={enviar}>Quiero que me contacten</button></div>
       <p className="hint">Tus datos los recibe solo JC Florido y él te contacta. Mientras tanto puedes visitar <span className="mono">jcflorido.me</span>.</p>
+    </section>
+  );
+}
+
+// Dudas para Factor-Gente: llegan a la bandeja del panel y JC contesta por WhatsApp
+export function ContactCard({ tipo, nombre, tel, candidateId, companyId, vacantes = [] }: {
+  tipo: 'Candidato' | 'Empresa'; nombre: string; tel: string; candidateId?: string; companyId?: string;
+  vacantes?: { id: string; puesto: string }[];
+}) {
+  const [texto, setTexto] = useState('');
+  const [vac, setVac] = useState('');
+  const [mios, setMios] = useState<Mensaje[]>([]);
+  const [busy, setBusy] = useState(false);
+  const cargar = useCallback(async () => {
+    const { data } = await supabase.from('mensajes').select('*').order('created_at', { ascending: false }).limit(5);
+    setMios((data as Mensaje[]) ?? []);
+  }, []);
+  useEffect(() => { cargar(); }, [cargar]);
+  const enviar = async () => {
+    if (!texto.trim()) return toast('Escribe tu duda o comentario.', true);
+    setBusy(true);
+    const { error } = await supabase.from('mensajes').insert({
+      tipo, nombre, tel, texto: texto.trim(), candidate_id: candidateId ?? null, company_id: companyId ?? null, vacancy_id: vac || null,
+    });
+    setBusy(false);
+    if (error) return toast('No se pudo enviar: ' + error.message, true);
+    setTexto(''); setVac('');
+    toast('Mensaje enviado. Te respondemos por WhatsApp.');
+    cargar();
+  };
+  return (
+    <section className="card contact">
+      <h3>¿Tienes una duda? Escríbenos</h3>
+      <p className="hint">Te respondemos por WhatsApp al <span className="mono">{tel}</span> el mismo día hábil.</p>
+      {vacantes.length > 0 && (
+        <F label="¿Sobre qué vacante? (opcional)">
+          <select value={vac} onChange={(e) => setVac(e.target.value)}>
+            <option value="">General</option>
+            {vacantes.map((v) => <option key={v.id} value={v.id}>{v.puesto}</option>)}
+          </select>
+        </F>
+      )}
+      <F label="Tu mensaje"><textarea value={texto} placeholder="Escribe aquí tu pregunta" onChange={(e) => setTexto(e.target.value)} /></F>
+      <div className="actions"><button type="button" className="btn primary" disabled={busy} onClick={enviar}>Enviar mensaje</button></div>
+      {mios.length > 0 && (
+        <div className="list">{mios.map((m) => (
+          <div className="item" key={m.id}>
+            <div className="item-h"><span className="hint">{fmtDate(m.created_at)}</span>{m.atendido ? <span className="pill ok">Respondido</span> : <span className="pill warn">En espera</span>}</div>
+            <p>{m.texto}</p>
+          </div>
+        ))}</div>
+      )}
     </section>
   );
 }

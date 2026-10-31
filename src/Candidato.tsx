@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AREAS, AREA_HINT, DISP, ESCO, HORARIO, ITEMS, MUNI, PAGO, SALIDA, SCALE, TIEMPO, TRANSP, money } from './lib/catalog';
 import { supabase } from './lib/supabase';
 import type { Candidate, PublicVacancy } from './lib/types';
-import { Aviso, Check, Checks, F, Radios, Sel, ServicesCard, Skills, toast } from './ui';
+import { Aviso, Check, Checks, ContactCard, F, Radios, Sel, ServicesCard, Skills, toast } from './ui';
 
 interface Draft {
   nombre: string; edad: string; sexo: string; tel: string; correo: string; municipio: string; colonia: string; esco: string;
@@ -221,6 +221,7 @@ export function CandidatoHome({ userId, onDeleted }: { userId: string; onDeleted
             </div>
             <p className="hint">El nombre de la empresa se da a conocer cuando avanzas en el proceso.</p>
           </section>
+          {c && <ContactCard tipo="Candidato" nombre={c.nombre} tel={c.tel} candidateId={c.id} />}
           {c && <ServicesCard tipo="Candidato" nombre={c.nombre} tel={c.tel} candidateId={c.id} />}
           {c && <DeleteAccount onDeleted={onDeleted} />}
         </div>

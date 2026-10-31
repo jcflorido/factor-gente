@@ -14,6 +14,10 @@ export interface Candidate {
 }
 
 export interface Company { id: string; user_id: string; nombre: string; giro: string | null; contacto: string | null; tel: string | null; requiere_anticipo: boolean; created_at: string }
+export interface Mensaje {
+  id: string; candidate_id: string | null; company_id: string | null; vacancy_id: string | null;
+  tipo: string; nombre: string; tel: string; texto: string; atendido: boolean; created_at: string;
+}
 export interface Tarifas { cuota_operativo: number; meses_admin: number; anticipo_pct: number; plazo_dias: number }
 export interface Cobro {
   id: string; company_id: string; vacancy_id: string | null; candidate_id: string | null;

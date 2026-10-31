@@ -2,16 +2,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import { ESTADOS, TARIFAS_BASE, TRAITS, anticipoDe, cuota, daysSince, fmtCita, fmtDate, isInc, llega, match, money, norm, pasaInterno, perfilTexto, plusDays, refFor, todayIso } from './lib/catalog';
 import { supabase } from './lib/supabase';
-import type { Candidate, Cobro, Company, Interest, Lead, Placement, RefSalary, Shortlist, Tarifas, Test, Vacancy } from './lib/types';
+import type { Candidate, Cobro, Company, Interest, Lead, Mensaje, Placement, RefSalary, Shortlist, Tarifas, Test, Vacancy } from './lib/types';
 import { CandidateForm } from './Candidato';
 import { VacPill } from './Empresa';
 import { F, Logo, RefCard, Sel, toast } from './ui';
 
 interface Data {
   cands: Candidate[]; vacs: Vacancy[]; cos: Company[]; tests: Test[]; short: Shortlist[];
-  places: Placement[]; ints: Interest[]; leads: Lead[]; refs: RefSalary[]; cobros: Cobro[]; tarifas: Tarifas;
+  places: Placement[]; ints: Interest[]; leads: Lead[]; refs: RefSalary[]; cobros: Cobro[]; tarifas: Tarifas; msgs: Mensaje[];
 }
-const EMPTY: Data = { cands: [], vacs: [], cos: [], tests: [], short: [], places: [], ints: [], leads: [], refs: [], cobros: [], tarifas: TARIFAS_BASE };
+const EMPTY: Data = { cands: [], vacs: [], cos: [], tests: [], short: [], places: [], ints: [], leads: [], refs: [], cobros: [], tarifas: TARIFAS_BASE, msgs: [] };
 
 const ESTADO_PILL: Record<string, string> = { Disponible: 'ok', 'En proceso': 'info', Colocado: 'lea', Inactivo: 'bad' };
 
@@ -39,6 +39,7 @@ export function Panel() {
       supabase.from('ref_salaries').select('*').order('orden'),
       supabase.from('cobros').select('*').order('created_at', { ascending: false }),
       supabase.from('tarifas').select('*').maybeSingle(),
+      supabase.from('mensajes').select('*').order('created_at', { ascending: false }).limit(200),
     ]);
     const bad = r.find((x) => x.error);
     if (bad?.error) toast('No se pudieron cargar los datos: ' + bad.error.message, true);
@@ -46,7 +47,7 @@ export function Panel() {
       cands: (r[0].data as Candidate[]) ?? [], vacs: (r[1].data as Vacancy[]) ?? [], cos: (r[2].data as Company[]) ?? [],
       tests: (r[3].data as Test[]) ?? [], short: (r[4].data as Shortlist[]) ?? [], places: (r[5].data as Placement[]) ?? [],
       ints: (r[6].data as Interest[]) ?? [], leads: (r[7].data as Lead[]) ?? [], refs: (r[8].data as RefSalary[]) ?? [],
-      cobros: (r[9].data as Cobro[]) ?? [], tarifas: (r[10].data as Tarifas) ?? TARIFAS_BASE,
+      cobros: (r[9].data as Cobro[]) ?? [], tarifas: (r[10].data as Tarifas) ?? TARIFAS_BASE, msgs: (r[11].data as Mensaje[]) ?? [],
     });
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -113,6 +114,8 @@ export function Panel() {
         <div className="kpi"><span>Por cobrar</span><b className="mono">{money(porCobrar)}</b><small>{d.cobros.filter((c) => !c.pagado).length} cobros pendientes</small></div>
         <div className="kpi"><span>Siguen a 90 días</span><b>{maduras.length ? Math.round((siguen / maduras.length) * 100) + '%' : '—'}</b><small>{siguen} de {maduras.length} con 90 días</small></div>
       </div>
+
+      <Bandeja msgs={d.msgs} vacs={d.vacs} run={run} />
 
       {pend.length > 0 && (
         <section className="card attention">
@@ -187,6 +190,37 @@ export function Panel() {
         </div>
       </div>
     </>
+  );
+}
+
+function Bandeja({ msgs, vacs, run }: { msgs: Mensaje[]; vacs: Vacancy[]; run: Run }) {
+  const [verTodos, setVerTodos] = useState(false);
+  const pendientes = msgs.filter((m) => !m.atendido);
+  const lista = verTodos ? msgs : pendientes;
+  if (!msgs.length) return null;
+  return (
+    <section className={'card' + (pendientes.length ? ' attention' : '')} style={{ marginBottom: 20 }}>
+      <div className="card-h"><h3>Mensajes</h3>
+        <div className="actions">
+          {pendientes.length > 0 && <span className="pill warn">{pendientes.length} sin responder</span>}
+          <label className="hint inline-check"><input type="checkbox" checked={verTodos} onChange={(e) => setVerTodos(e.target.checked)} /> Ver también los respondidos</label>
+        </div></div>
+      {!lista.length ? <p className="empty">No hay mensajes pendientes.</p> : (
+        <div className="list">{lista.map((m) => (
+          <div className="item" key={m.id}>
+            <div className="item-h"><span><b>{m.nombre}</b> <span className="pill lea">{m.tipo}</span>{m.vacancy_id && <span className="hint"> · {vacs.find((v) => v.id === m.vacancy_id)?.puesto}</span>}</span>
+              <span className="hint">{fmtCita(m.created_at)}</span></div>
+            <p>{m.texto}</p>
+            <div className="actions">
+              <span className="mono">WhatsApp: {m.tel}</span>
+              {m.atendido
+                ? <button type="button" className="btn sm" onClick={() => run(supabase.from('mensajes').update({ atendido: false }).eq('id', m.id))}>Marcar pendiente</button>
+                : <button type="button" className="btn sm primary" onClick={() => run(supabase.from('mensajes').update({ atendido: true }).eq('id', m.id), 'Marcado como respondido.')}>Ya le respondí</button>}
+            </div>
+          </div>
+        ))}</div>
+      )}
+    </section>
   );
 }
 

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AREAS, ESCO, HORARIO, MUNI, PAGO, PREST, TARIFAS_BASE, anticipoDe, fmtCita, fmtDate, money, perfilTexto, todayIso } from './lib/catalog';
 import { supabase } from './lib/supabase';
 import type { Cobro, Company, RefSalary, Tarifas, Terna, Vacancy } from './lib/types';
-import { Check, Checks, F, Radios, RefCard, Sel, ServicesCard, Skills, toast } from './ui';
+import { Check, Checks, ContactCard, F, Radios, RefCard, Sel, ServicesCard, Skills, toast } from './ui';
 
 export function EmpresaHome({ userId }: { userId: string }) {
   const [co, setCo] = useState<Company | null | undefined>(undefined);
@@ -89,6 +89,7 @@ export function EmpresaHome({ userId }: { userId: string }) {
               {!vacs.length && <p className="empty">Aún no hay solicitudes.</p>}
             </div>
           </section>
+          <ContactCard tipo="Empresa" nombre={co.nombre} tel={co.tel ?? ''} companyId={co.id} vacantes={vacs.map((v) => ({ id: v.id, puesto: v.puesto }))} />
           {cobros.length > 0 && (
             <section className="card">
               <div className="card-h"><h3>Mis pagos</h3></div>
