@@ -13,18 +13,23 @@ export interface Candidate {
   estado: string; notas: string | null; created_at: string;
 }
 
-export interface Company { id: string; user_id: string; nombre: string; giro: string | null; contacto: string | null; tel: string | null; created_at: string }
+export interface Company { id: string; user_id: string; nombre: string; giro: string | null; contacto: string | null; tel: string | null; requiere_anticipo: boolean; created_at: string }
+export interface Tarifas { cuota_operativo: number; meses_admin: number; anticipo_pct: number; plazo_dias: number }
+export interface Cobro {
+  id: string; company_id: string; vacancy_id: string | null; candidate_id: string | null;
+  concepto: string; monto: number; vence: string | null; pagado: string | null; created_at: string;
+}
 
 export interface Vacancy {
   id: string; company_id: string; puesto: string; area: string; n: number; zona: string; funciones: string;
   esco: string | null; exp: string | null; habilidades: string[]; tipo: string | null; smin: number | null; smax: number | null;
   horario: string | null; prest: string[]; transporte: boolean; comedor: boolean; incluyente: boolean;
   salidas: number; motivo: string | null; sexo: string; edad_min: number | null; edad_max: number | null; just: string | null;
-  pub: string; acepta: boolean; estado: string; created_at: string;
+  pub: string; acepta: boolean; estado: string; anticipo_pagado: boolean; created_at: string;
 }
 
 export interface Test { candidate_id: string; estado: string; res: Res | null; assigned_at: string; completed_at: string | null }
-export interface Shortlist { vacancy_id: string; candidate_id: string; enviado: boolean; quiere: boolean; liberado: boolean; created_at: string }
+export interface Shortlist { vacancy_id: string; candidate_id: string; enviado: boolean; quiere: boolean; liberado: boolean; cita: string | null; lugar: string | null; created_at: string }
 export interface Placement { candidate_id: string; vacancy_id: string; ingreso: string; c30: boolean | null; c60: boolean | null; c90: boolean | null }
 export interface Interest { candidate_id: string; vacancy_id: string }
 export interface Lead { id: string; nombre: string; tipo: string; servicios: string[]; via: string | null; tel: string; created_at: string }
@@ -40,4 +45,5 @@ export interface Terna {
   nombre: string | null; tel: string | null; ult_puesto: string | null; ult_tiempo: string | null; esco: string | null;
   pmin: number | null; pmax: number | null; tipo_pref: string | null; disp: string | null;
   mov: string[]; habilidades: string[]; carta: string | null; res: Res | null;
+  cita: string | null; lugar: string | null;
 }

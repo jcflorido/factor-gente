@@ -1,4 +1,16 @@
-import type { Candidate, RefSalary, Res, Vacancy } from './types';
+import type { Candidate, RefSalary, Res, Tarifas, Vacancy } from './types';
+
+export const TARIFAS_BASE: Tarifas = { cuota_operativo: 2500, meses_admin: 1, anticipo_pct: 30, plazo_dias: 7 };
+
+// Cuota por persona colocada: fija en operativo; en administrativo y supervisión, meses del sueldo ofrecido (punto medio del rango)
+export function cuota(v: Pick<Vacancy, 'area' | 'smin' | 'smax'>, t: Tarifas): number {
+  if (v.area === 'Operativo') return t.cuota_operativo;
+  const lo = v.smin ?? v.smax ?? 0, hi = v.smax ?? v.smin ?? 0;
+  return Math.round((t.meses_admin * (lo + hi)) / 2);
+}
+export const anticipoDe = (v: Pick<Vacancy, 'area' | 'smin' | 'smax' | 'n'>, t: Tarifas) => Math.round((cuota(v, t) * v.n * t.anticipo_pct) / 100);
+export const fmtCita = (iso: string) => new Date(iso).toLocaleString('es-MX', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+export const plusDays = (days: number) => { const d = new Date(); d.setDate(d.getDate() + days); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
 
 export const HAB: Record<string, string[]> = {
   Operativo: ['Corte', 'Preparado', 'Pespunte', 'Montado', 'Adorno', 'Acabado', 'Empaque', 'Máquina de coser', 'Inyección de suela', 'Control de calidad', 'Almacén', 'Montacargas', 'Mantenimiento', 'Chofer / reparto', 'Limpieza'],

@@ -1,19 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
-import { ESTADOS, TRAITS, daysSince, fmtDate, isInc, llega, match, money, norm, pasaInterno, perfilTexto, refFor } from './lib/catalog';
+import { ESTADOS, TARIFAS_BASE, TRAITS, anticipoDe, cuota, daysSince, fmtCita, fmtDate, isInc, llega, match, money, norm, pasaInterno, perfilTexto, plusDays, refFor, todayIso } from './lib/catalog';
 import { supabase } from './lib/supabase';
-import type { Candidate, Company, Interest, Lead, Placement, RefSalary, Shortlist, Test, Vacancy } from './lib/types';
+import type { Candidate, Cobro, Company, Interest, Lead, Placement, RefSalary, Shortlist, Tarifas, Test, Vacancy } from './lib/types';
 import { CandidateForm } from './Candidato';
 import { VacPill } from './Empresa';
-import { Logo, RefCard, Sel, toast } from './ui';
+import { F, Logo, RefCard, Sel, toast } from './ui';
 
 interface Data {
   cands: Candidate[]; vacs: Vacancy[]; cos: Company[]; tests: Test[]; short: Shortlist[];
-  places: Placement[]; ints: Interest[]; leads: Lead[]; refs: RefSalary[];
+  places: Placement[]; ints: Interest[]; leads: Lead[]; refs: RefSalary[]; cobros: Cobro[]; tarifas: Tarifas;
 }
-const EMPTY: Data = { cands: [], vacs: [], cos: [], tests: [], short: [], places: [], ints: [], leads: [], refs: [] };
+const EMPTY: Data = { cands: [], vacs: [], cos: [], tests: [], short: [], places: [], ints: [], leads: [], refs: [], cobros: [], tarifas: TARIFAS_BASE };
 
 const ESTADO_PILL: Record<string, string> = { Disponible: 'ok', 'En proceso': 'info', Colocado: 'lea', Inactivo: 'bad' };
+
+type Run = (p: PromiseLike<{ error: { message: string } | null }>, ok?: string) => Promise<boolean>;
 
 export function Panel() {
   const [d, setD] = useState<Data>(EMPTY);
@@ -35,6 +37,8 @@ export function Panel() {
       supabase.from('interests').select('candidate_id,vacancy_id'),
       supabase.from('leads').select('*').order('created_at', { ascending: false }),
       supabase.from('ref_salaries').select('*').order('orden'),
+      supabase.from('cobros').select('*').order('created_at', { ascending: false }),
+      supabase.from('tarifas').select('*').maybeSingle(),
     ]);
     const bad = r.find((x) => x.error);
     if (bad?.error) toast('No se pudieron cargar los datos: ' + bad.error.message, true);
@@ -42,16 +46,18 @@ export function Panel() {
       cands: (r[0].data as Candidate[]) ?? [], vacs: (r[1].data as Vacancy[]) ?? [], cos: (r[2].data as Company[]) ?? [],
       tests: (r[3].data as Test[]) ?? [], short: (r[4].data as Shortlist[]) ?? [], places: (r[5].data as Placement[]) ?? [],
       ints: (r[6].data as Interest[]) ?? [], leads: (r[7].data as Lead[]) ?? [], refs: (r[8].data as RefSalary[]) ?? [],
+      cobros: (r[9].data as Cobro[]) ?? [], tarifas: (r[10].data as Tarifas) ?? TARIFAS_BASE,
     });
   }, []);
   useEffect(() => { load(); }, [load]);
 
   const cand = (id: string) => d.cands.find((c) => c.id === id);
-  const coName = (id: string) => d.cos.find((c) => c.id === id)?.nombre ?? '—';
+  const co = (id: string) => d.cos.find((c) => c.id === id);
+  const coName = (id: string) => co(id)?.nombre ?? '—';
   const testOf = (id: string) => d.tests.find((t) => t.candidate_id === id);
   const v = d.vacs.find((x) => x.id === selVac) ?? d.vacs[0];
 
-  const run = async (p: PromiseLike<{ error: { message: string } | null }>, ok?: string) => {
+  const run: Run = async (p, ok) => {
     const { error } = await p;
     if (error) { toast(error.message, true); return false; }
     if (ok) toast(ok);
@@ -59,11 +65,30 @@ export function Panel() {
     return true;
   };
 
+  // Contratado: se registra la colocación y el cobro (menos la parte del anticipo que ya pagó)
+  const contratar = async (s: Shortlist) => {
+    const vv = d.vacs.find((x) => x.id === s.vacancy_id);
+    if (!vv) return;
+    const total = cuota(vv, d.tarifas);
+    const yaPagado = vv.anticipo_pagado ? Math.round(anticipoDe(vv, d.tarifas) / vv.n) : 0;
+    const ok = await run(supabase.from('placements').insert({ candidate_id: s.candidate_id, vacancy_id: vv.id }));
+    if (!ok) return;
+    await supabase.from('cobros').insert({ company_id: vv.company_id, vacancy_id: vv.id, candidate_id: s.candidate_id, concepto: 'Colocación', monto: Math.max(0, total - yaPagado), vence: plusDays(d.tarifas.plazo_dias) });
+    await supabase.from('candidates').update({ estado: 'Colocado' }).eq('id', s.candidate_id);
+    const colocados = d.places.filter((p) => p.vacancy_id === vv.id).length + 1;
+    if (colocados >= vv.n) await supabase.from('vacancies').update({ estado: 'Cubierta' }).eq('id', vv.id);
+    await load();
+    toast('Colocación registrada. Se generó el cobro y empieza el seguimiento.');
+  };
+
   const disp = d.cands.filter((c) => c.estado === 'Disponible').length;
   const abiertas = d.vacs.filter((x) => x.estado === 'Abierta' || x.estado === 'Terna enviada').length;
   const maduras = d.places.filter((p) => daysSince(p.ingreso) >= 90);
   const siguen = maduras.filter((p) => p.c90 === true).length;
-  const pend = d.short.filter((s) => s.quiere && !s.liberado);
+  const porCobrar = d.cobros.filter((c) => !c.pagado).reduce((a, c) => a + c.monto, 0);
+  const pend = d.short.filter((s) => s.quiere && !s.cita && !s.liberado);
+  const placed = (s: Shortlist) => d.places.some((p) => p.vacancy_id === s.vacancy_id && p.candidate_id === s.candidate_id);
+  const agendadas = d.short.filter((s) => s.cita && !placed(s));
 
   if (form) {
     return (
@@ -81,39 +106,57 @@ export function Panel() {
   return (
     <>
       <div className="intro"><span className="eyebrow">Panel de Factor-Gente</span><h2>Filtro y colocación</h2>
-        <p>Elige una vacante, revisa los candidatos sugeridos, asigna pruebas y arma la terna para la empresa.</p></div>
+        <p>Elige una vacante, revisa los candidatos sugeridos, asigna pruebas y arma la terna. Tú coordinas las entrevistas; la empresa no recibe teléfonos.</p></div>
       <div className="kpis">
         <div className="kpi"><span>Candidatos disponibles</span><b>{disp}</b><small>de {d.cands.length} registrados</small></div>
         <div className="kpi"><span>Vacantes abiertas</span><b>{abiertas}</b><small>{d.vacs.filter((x) => x.estado === 'Terna enviada').length} con terna enviada</small></div>
-        <div className="kpi"><span>Colocaciones</span><b>{d.places.length}</b><small>en seguimiento</small></div>
+        <div className="kpi"><span>Por cobrar</span><b className="mono">{money(porCobrar)}</b><small>{d.cobros.filter((c) => !c.pagado).length} cobros pendientes</small></div>
         <div className="kpi"><span>Siguen a 90 días</span><b>{maduras.length ? Math.round((siguen / maduras.length) * 100) + '%' : '—'}</b><small>{siguen} de {maduras.length} con 90 días</small></div>
       </div>
 
       {pend.length > 0 && (
         <section className="card attention">
           <div className="card-h"><h3>Empresas que quieren entrevistar</h3><span className="pill info">{pend.length}</span></div>
+          <p className="hint">Agenda la cita con la empresa y avísale al candidato por WhatsApp. La empresa verá el nombre, la fecha y el lugar, pero no el teléfono.</p>
           <div className="list">{pend.map((s) => {
             const vv = d.vacs.find((x) => x.id === s.vacancy_id), c = cand(s.candidate_id);
             if (!vv || !c) return null;
+            return <Agendar key={s.vacancy_id + s.candidate_id} s={s} titulo={<><b>{coName(vv.company_id)}</b> quiere entrevistar a <b>{c.nombre}</b> · {vv.puesto}</>} tel={c.tel} run={run} />;
+          })}</div>
+        </section>
+      )}
+
+      {agendadas.length > 0 && (
+        <section className="card">
+          <div className="card-h"><h3>Entrevistas agendadas</h3><span className="pill info">{agendadas.length}</span></div>
+          <div className="list">{agendadas.map((s) => {
+            const vv = d.vacs.find((x) => x.id === s.vacancy_id), c = cand(s.candidate_id);
+            if (!vv || !c) return null;
             return (
-              <div className="item" key={s.vacancy_id + s.candidate_id}><div className="item-h">
-                <span><b>{coName(vv.company_id)}</b> quiere entrevistar a <b>{c.nombre}</b> · {vv.puesto}</span>
-                <button type="button" className="btn sm primary" onClick={() => run(supabase.from('shortlist').update({ liberado: true }).eq('vacancy_id', s.vacancy_id).eq('candidate_id', s.candidate_id), 'Contacto liberado a la empresa.')}>Liberar contacto</button>
-              </div></div>
+              <div className="item" key={s.vacancy_id + s.candidate_id}>
+                <div className="item-h"><span><b>{c.nombre}</b> con <b>{coName(vv.company_id)}</b> · {vv.puesto}</span><span className="pill info">{fmtCita(s.cita!)}</span></div>
+                <div className="meta"><span>{s.lugar}</span><span className="mono">WhatsApp candidato: {c.tel}</span></div>
+                <div className="actions">
+                  <button type="button" className="btn sm primary" onClick={() => contratar(s)}>Marcar contratado</button>
+                  <button type="button" className="btn sm" onClick={() => run(supabase.from('shortlist').update({ cita: null, lugar: null }).eq('vacancy_id', s.vacancy_id).eq('candidate_id', s.candidate_id), 'Cita cancelada.')}>Cancelar cita</button>
+                </div>
+              </div>
             );
           })}</div>
+          <p className="hint">Al marcar contratado se genera el cobro por {money(d.tarifas.cuota_operativo)} (operativo) o el mes de sueldo (administrativo), con {d.tarifas.plazo_dias} días para pagar.</p>
         </section>
       )}
 
       <div className="grid">
         <div className="stack">
-          {v ? <Sugeridos key={v.id} v={v} d={d} coName={coName} testOf={testOf} filtroInterno={filtroInterno} setFiltroInterno={setFiltroInterno}
+          {v ? <Sugeridos key={v.id} v={v} d={d} company={co(v.company_id)} testOf={testOf} filtroInterno={filtroInterno} setFiltroInterno={setFiltroInterno}
               soloInc={soloInc} setSoloInc={setSoloInc} onCand={setSelCand} run={run} />
             : <section className="card"><h3>Sin vacantes todavía</h3><p className="empty">Cuando una empresa envíe una solicitud aparecerá aquí.</p></section>}
           {selCand && cand(selCand) && (
             <Detalle c={cand(selCand)!} test={testOf(selCand)} run={run} onClose={() => setSelCand(null)}
               onEdit={() => setForm({ mode: 'admin', c: cand(selCand)! })} />
           )}
+          <Cobros d={d} coName={coName} cand={cand} run={run} />
           <Base cands={d.cands} buscar={buscar} setBuscar={setBuscar} onCand={setSelCand} />
           <Seguimiento d={d} cand={cand} run={run} />
         </div>
@@ -125,9 +168,10 @@ export function Panel() {
                 <span className="item-h"><strong>{x.puesto}</strong><VacPill e={x.estado} /></span>
                 <span className="meta"><span>{coName(x.company_id)}</span><span>{x.area}</span><span>{x.pub === 'anonima' ? 'Publicada' : 'Privada'}</span></span>
               </button>
-            ))}</div>
+            ))}{!d.vacs.length && <p className="empty">Aún no hay vacantes.</p>}</div>
           </section>
           <Difusion onAsistido={() => setForm({ mode: 'asistido', c: null })} />
+          <TarifasCard t={d.tarifas} run={run} />
           <RefCard refs={d.refs} />
           <section className="card">
             <div className="card-h"><h3>Interesados en la consultora</h3><p>{d.leads.length}</p></div>
@@ -146,19 +190,46 @@ export function Panel() {
   );
 }
 
-type Run = (p: PromiseLike<{ error: { message: string } | null }>, ok?: string) => Promise<boolean>;
+function Agendar({ s, titulo, tel, run }: { s: Shortlist; titulo: React.ReactNode; tel: string; run: Run }) {
+  const [cita, setCita] = useState('');
+  const [lugar, setLugar] = useState('');
+  const [darTel, setDarTel] = useState(false);
+  const agendar = () => {
+    if (!cita || !lugar.trim()) return toast('Escribe fecha, hora y lugar de la entrevista.', true);
+    return run(supabase.from('shortlist').update({ cita: new Date(cita).toISOString(), lugar: lugar.trim() }).eq('vacancy_id', s.vacancy_id).eq('candidate_id', s.candidate_id), 'Entrevista agendada. Avísale al candidato.');
+  };
+  return (
+    <div className="item">
+      <div className="item-h"><span>{titulo}</span></div>
+      <div className="row">
+        <F label="Fecha y hora"><input type="datetime-local" value={cita} onChange={(e) => setCita(e.target.value)} /></F>
+        <F label="Lugar"><input type="text" value={lugar} placeholder="Ej. recepción de la planta, calle y número" onChange={(e) => setLugar(e.target.value)} /></F>
+      </div>
+      <div className="actions">
+        <button type="button" className="btn sm primary" onClick={agendar}>Agendar entrevista</button>
+        <span className="hint mono">WhatsApp del candidato: {tel}</span>
+        {!darTel ? <button type="button" className="link" onClick={() => setDarTel(true)}>Dar teléfono a la empresa</button> : (
+          <span className="confirm-inline">La empresa podrá contactarlo directamente. ¿Seguro?
+            <button type="button" className="btn sm danger fill" onClick={() => run(supabase.from('shortlist').update({ liberado: true }).eq('vacancy_id', s.vacancy_id).eq('candidate_id', s.candidate_id), 'Teléfono liberado a la empresa.')}>Sí, darlo</button>
+            <button type="button" className="btn sm" onClick={() => setDarTel(false)}>Cancelar</button></span>
+        )}
+      </div>
+    </div>
+  );
+}
 
-function Sugeridos({ v, d, coName, testOf, filtroInterno, setFiltroInterno, soloInc, setSoloInc, onCand, run }: {
-  v: Vacancy; d: Data; coName: (id: string) => string; testOf: (id: string) => Test | undefined;
+function Sugeridos({ v, d, company, testOf, filtroInterno, setFiltroInterno, soloInc, setSoloInc, onCand, run }: {
+  v: Vacancy; d: Data; company?: Company; testOf: (id: string) => Test | undefined;
   filtroInterno: boolean; setFiltroInterno: (b: boolean) => void; soloInc: boolean; setSoloInc: (b: boolean) => void;
   onCand: (id: string) => void; run: Run;
 }) {
   const ref = refFor(v.puesto, d.refs);
   const terna = d.short.filter((s) => s.vacancy_id === v.id);
   const enTerna = (id: string) => terna.some((s) => s.candidate_id === id);
-  const enviada = terna.some((s) => s.enviado);
   const interno = v.sexo !== 'Indistinto' || v.edad_min || v.edad_max;
-  const liberado = terna.find((s) => s.liberado);
+  const pideAnticipo = !!company?.requiere_anticipo;
+  const faltaAnticipo = pideAnticipo && !v.anticipo_pagado;
+  const montoAnticipo = anticipoDe(v, d.tarifas);
 
   let rows = d.cands.filter((c) => c.estado !== 'Colocado' && c.estado !== 'Inactivo')
     .map((c) => ({ c, s: match(c, v, testOf(c.id)?.res), ok: pasaInterno(c, v) }))
@@ -176,14 +247,12 @@ function Sugeridos({ v, d, coName, testOf, filtroInterno, setFiltroInterno, solo
     if (!ok) return;
     await supabase.from('vacancies').update({ estado: 'Terna enviada' }).eq('id', v.id);
     const ids = terna.map((s) => s.candidate_id);
-    await run(supabase.from('candidates').update({ estado: 'En proceso' }).in('id', ids).eq('estado', 'Disponible'), 'Terna enviada a ' + coName(v.company_id) + '.');
+    await run(supabase.from('candidates').update({ estado: 'En proceso' }).in('id', ids).eq('estado', 'Disponible'), 'Terna enviada a ' + (company?.nombre ?? 'la empresa') + '.');
   };
 
-  const contratar = async (cid: string) => {
-    const ok = await run(supabase.from('placements').insert({ candidate_id: cid, vacancy_id: v.id }));
-    if (!ok) return;
-    await supabase.from('candidates').update({ estado: 'Colocado' }).eq('id', cid);
-    await run(supabase.from('vacancies').update({ estado: 'Cubierta' }).eq('id', v.id), 'Colocación registrada. Empieza el seguimiento.');
+  const registrarAnticipo = async () => {
+    const ok = await run(supabase.from('cobros').insert({ company_id: v.company_id, vacancy_id: v.id, concepto: 'Anticipo', monto: montoAnticipo, vence: todayIso(), pagado: todayIso() }));
+    if (ok) await run(supabase.from('vacancies').update({ anticipo_pagado: true }).eq('id', v.id), 'Anticipo registrado.');
   };
 
   return (
@@ -194,17 +263,26 @@ function Sugeridos({ v, d, coName, testOf, filtroInterno, setFiltroInterno, solo
           <label className="hint inline-check"><input type="checkbox" checked={soloInc} onChange={(e) => setSoloInc(e.target.checked)} /> Solo perfiles de inclusión</label>
         </div></div>
       <div className="meta">
-        <span>{coName(v.company_id)}</span><span>{v.zona}</span><span className="mono">{money(v.smin)}–{money(v.smax)}</span><span>{v.tipo}</span>
+        <span>{company?.nombre}</span><span>{v.zona}</span><span className="mono">{money(v.smin)}–{money(v.smax)}</span><span>{v.tipo}</span>
         <span>Busca: {v.habilidades.join(', ') || '—'}</span>
         {v.incluyente && <span className="pill lea">Vacante incluyente</span>}
         {ref && v.smax && v.smax < ref.min && <span className="pill warn">Sueldo bajo vs. zona ({money(ref.min)}–{money(ref.max)})</span>}
         {v.salidas >= 3 && <span className="pill warn">Rotación alta: {v.salidas} salidas en 6 meses ({v.motivo})</span>}
         <label className="inline-check">Estado <Sel value={v.estado} onChange={(e) => run(supabase.from('vacancies').update({ estado: e }).eq('id', v.id))} options={['Abierta', 'Terna enviada', 'Cubierta', 'Cancelada']} /></label>
       </div>
+      <div className="meta">
+        <span>Cobro por persona: <b className="mono">{money(cuota(v, d.tarifas))}</b> × {v.n}</span>
+        {pideAnticipo ? (v.anticipo_pagado ? <span className="pill ok">Anticipo pagado</span> : <>
+          <span className="pill warn">Anticipo pendiente: {money(montoAnticipo)}</span>
+          <button type="button" className="btn sm" onClick={registrarAnticipo}>Registrar anticipo pagado</button></>) : <span className="pill ok">Sin anticipo</span>}
+        {company && <label className="hint inline-check"><input type="checkbox" checked={!company.requiere_anticipo}
+          onChange={(e) => run(supabase.from('companies').update({ requiere_anticipo: !e.target.checked }).eq('id', company.id))} /> Empresa de confianza (sin anticipo)</label>}
+      </div>
       <details><summary>Ver detalle de la vacante</summary>
         <p><b>Funciones:</b> {v.funciones}</p>
         <p><b>Preparación:</b> {v.esco} · <b>Experiencia:</b> {v.exp} · <b>Horario:</b> {v.horario} · <b>Personas:</b> {v.n}</p>
         <p><b>Prestaciones:</b> {v.prest.join(', ') || '—'} · Transporte: {v.transporte ? 'sí' : 'no'} · Comedor: {v.comedor ? 'sí' : 'no'}</p>
+        <p><b>Contacto de la empresa:</b> {company?.contacto} · <span className="mono">{company?.tel}</span></p>
       </details>
       {interno && <p className="note"><span className="private">Filtro interno:</span> {v.sexo}{(v.edad_min || v.edad_max) ? `, ${v.edad_min ?? '?'}–${v.edad_max ?? '?'} años` : ''}. Motivo que dio la empresa: “{v.just}”. Si el motivo no justifica el requisito, coméntalo con la empresa antes de filtrar.</p>}
       {!rows.length ? <p className="empty">No hay candidatos del área de esta vacante con estos filtros.</p> : (
@@ -230,16 +308,61 @@ function Sugeridos({ v, d, coName, testOf, filtroInterno, setFiltroInterno, solo
         </tbody></table></div>
       )}
       <div className="actions">
-        <button type="button" className="btn primary" disabled={!terna.length || terna.every((s) => s.enviado)} onClick={enviar}>
-          {enviada && terna.every((s) => s.enviado) ? `Terna enviada (${terna.length})` : `Enviar terna a la empresa (${terna.length}/3)`}</button>
-        {liberado && v.estado !== 'Cubierta' && cand_name(d, liberado.candidate_id) && (
-          <button type="button" className="btn" onClick={() => contratar(liberado.candidate_id)}>Marcar contratado: {cand_name(d, liberado.candidate_id)}</button>
-        )}
+        <button type="button" className="btn primary" disabled={!terna.length || terna.every((s) => s.enviado) || faltaAnticipo} onClick={enviar}>
+          {terna.length && terna.every((s) => s.enviado) ? `Terna enviada (${terna.length})` : `Enviar terna a la empresa (${terna.length}/3)`}</button>
+        {faltaAnticipo && terna.length > 0 && <span className="hint">Para enviar la terna, primero registra el anticipo o marca a la empresa como de confianza.</span>}
       </div>
     </section>
   );
 }
-const cand_name = (d: Data, id: string) => d.cands.find((c) => c.id === id)?.nombre;
+
+function Cobros({ d, coName, cand, run }: { d: Data; coName: (id: string) => string; cand: (id: string) => Candidate | undefined; run: Run }) {
+  const hoy = todayIso();
+  const estado = (c: Cobro) => c.pagado ? <span className="pill ok">Pagado {fmtDate(c.pagado)}</span>
+    : c.vence && c.vence < hoy ? <span className="pill bad">Vencido</span> : <span className="pill warn">Pendiente</span>;
+  return (
+    <section className="card">
+      <div className="card-h"><h3>Cobros</h3><p>{money(d.cobros.filter((c) => !c.pagado).reduce((a, c) => a + c.monto, 0))} por cobrar</p></div>
+      {!d.cobros.length ? <p className="empty">Aún no hay cobros. Se generan al registrar un anticipo o al marcar a alguien como contratado.</p> : (
+        <div className="tbl"><table><thead><tr><th>Empresa</th><th>Concepto</th><th>Monto</th><th>Vence</th><th>Estado</th><th></th></tr></thead><tbody>
+          {d.cobros.map((c) => {
+            const vv = d.vacs.find((x) => x.id === c.vacancy_id);
+            return (
+              <tr key={c.id}>
+                <td>{coName(c.company_id)}<div className="hint">{vv?.puesto}{c.candidate_id && cand(c.candidate_id) ? ' · ' + cand(c.candidate_id)!.nombre : ''}</div></td>
+                <td>{c.concepto}</td><td className="mono">{money(c.monto)}</td><td>{c.vence ? fmtDate(c.vence) : '—'}</td><td>{estado(c)}</td>
+                <td>{!c.pagado && <button type="button" className="btn sm" onClick={() => run(supabase.from('cobros').update({ pagado: hoy }).eq('id', c.id), 'Pago registrado.')}>Marcar pagado</button>}</td>
+              </tr>
+            );
+          })}
+        </tbody></table></div>
+      )}
+      <p className="hint">La garantía de reemplazo solo aplica cuando la colocación está pagada.</p>
+    </section>
+  );
+}
+
+function TarifasCard({ t, run }: { t: Tarifas; run: Run }) {
+  const [x, setX] = useState(t);
+  useEffect(() => setX(t), [t]);
+  const set = (k: keyof Tarifas, v: string) => setX({ ...x, [k]: Number(v) || 0 });
+  const cambiado = JSON.stringify(x) !== JSON.stringify(t);
+  return (
+    <section className="card">
+      <h3>Tarifas</h3>
+      <div className="row">
+        <F label="Operativo: cuota fija por persona"><input type="number" step={100} value={x.cuota_operativo} onChange={(e) => set('cuota_operativo', e.target.value)} /></F>
+        <F label="Administrativo y supervisión: meses de sueldo"><input type="number" step={0.25} value={x.meses_admin} onChange={(e) => set('meses_admin', e.target.value)} /></F>
+      </div>
+      <div className="row">
+        <F label="Anticipo (% del total)"><input type="number" min={0} max={100} value={x.anticipo_pct} onChange={(e) => set('anticipo_pct', e.target.value)} /></F>
+        <F label="Días para pagar"><input type="number" min={0} value={x.plazo_dias} onChange={(e) => set('plazo_dias', e.target.value)} /></F>
+      </div>
+      <div className="actions"><button type="button" className="btn sm primary" disabled={!cambiado} onClick={() => run(supabase.from('tarifas').update(x).eq('id', 1), 'Tarifas guardadas.')}>Guardar tarifas</button></div>
+      <p className="hint">Las empresas ven estas condiciones al pedir personal. El anticipo se descuenta del cobro final.</p>
+    </section>
+  );
+}
 
 function Detalle({ c, test, run, onClose, onEdit }: { c: Candidate; test?: Test; run: Run; onClose: () => void; onEdit: () => void }) {
   const [notas, setNotas] = useState(c.notas ?? '');
@@ -326,16 +449,18 @@ function Seguimiento({ d, cand, run }: { d: Data; cand: (id: string) => Candidat
   };
   return (
     <section className="card">
-      <div className="card-h"><h3>Seguimiento de colocados</h3><p>Garantía: reemplazo sin costo si sale antes de 60 días</p></div>
+      <div className="card-h"><h3>Seguimiento de colocados</h3><p>Garantía: reemplazo sin costo si sale antes de 60 días y la colocación está pagada</p></div>
       {!d.places.length ? <p className="empty">Aún no hay colocaciones.</p> : (
         <div className="tbl"><table><thead><tr><th>Persona</th><th>Puesto</th><th>Ingreso</th><th>30 d</th><th>60 d</th><th>90 d</th><th></th></tr></thead><tbody>
           {d.places.map((p) => {
             const vv = d.vacs.find((x) => x.id === p.vacancy_id);
-            const gar = p.c30 === false || p.c60 === false;
+            const salio = p.c30 === false || p.c60 === false;
+            const pagado = d.cobros.some((c) => c.concepto === 'Colocación' && c.vacancy_id === p.vacancy_id && c.candidate_id === p.candidate_id && c.pagado);
             return (
               <tr key={p.candidate_id + p.vacancy_id}><td>{cand(p.candidate_id)?.nombre ?? '—'}</td><td>{vv?.puesto}</td><td>{fmtDate(p.ingreso)}</td>
                 <td>{cell(p, 'c30', 30)}</td><td>{cell(p, 'c60', 60)}</td><td>{cell(p, 'c90', 90)}</td>
-                <td>{gar ? <span className="pill bad">Aplica reemplazo</span> : p.c90 === true ? <span className="pill ok">Retenido</span> : null}</td></tr>
+                <td>{salio ? (pagado ? <span className="pill bad">Aplica reemplazo</span> : <span className="pill warn">Sin garantía: pago pendiente</span>)
+                  : p.c90 === true ? <span className="pill ok">Retenido</span> : null}</td></tr>
             );
           })}
         </tbody></table></div>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AREAS, ESCO, HORARIO, MUNI, PAGO, PREST, fmtDate, money, perfilTexto } from './lib/catalog';
+import { AREAS, ESCO, HORARIO, MUNI, PAGO, PREST, TARIFAS_BASE, anticipoDe, fmtCita, fmtDate, money, perfilTexto, todayIso } from './lib/catalog';
 import { supabase } from './lib/supabase';
-import type { Company, RefSalary, Terna, Vacancy } from './lib/types';
+import type { Cobro, Company, RefSalary, Tarifas, Terna, Vacancy } from './lib/types';
 import { Check, Checks, F, Radios, RefCard, Sel, ServicesCard, Skills, toast } from './ui';
 
 export function EmpresaHome({ userId }: { userId: string }) {
@@ -9,18 +9,24 @@ export function EmpresaHome({ userId }: { userId: string }) {
   const [vacs, setVacs] = useState<Vacancy[]>([]);
   const [ternas, setTernas] = useState<Terna[]>([]);
   const [refs, setRefs] = useState<RefSalary[]>([]);
+  const [tarifas, setTarifas] = useState<Tarifas>(TARIFAS_BASE);
+  const [cobros, setCobros] = useState<Cobro[]>([]);
 
   const load = useCallback(async () => {
-    const [a, b, t, r] = await Promise.all([
+    const [a, b, t, r, f, c] = await Promise.all([
       supabase.from('companies').select('*').eq('user_id', userId).maybeSingle(),
       supabase.from('vacancies').select('*').order('created_at', { ascending: false }),
       supabase.rpc('my_ternas'),
       supabase.from('ref_salaries').select('*').order('orden'),
+      supabase.from('tarifas').select('*').maybeSingle(),
+      supabase.from('cobros').select('*').order('created_at', { ascending: false }),
     ]);
     setCo((a.data as Company) ?? null);
     setVacs((b.data as Vacancy[]) ?? []);
     setTernas((t.data as Terna[]) ?? []);
     setRefs((r.data as RefSalary[]) ?? []);
+    setTarifas((f.data as Tarifas) ?? TARIFAS_BASE);
+    setCobros((c.data as Cobro[]) ?? []);
   }, [userId]);
   useEffect(() => { load(); }, [load]);
 
@@ -30,7 +36,7 @@ export function EmpresaHome({ userId }: { userId: string }) {
   const quiero = async (vid: string, cid: string) => {
     const { error } = await supabase.rpc('request_interview', { p_vacancy: vid, p_candidate: cid });
     if (error) return toast(error.message, true);
-    toast('Listo. Factor-Gente te enviará el contacto.');
+    toast('Listo. Factor-Gente te confirmará fecha y hora de la entrevista.');
     load();
   };
 
@@ -39,7 +45,7 @@ export function EmpresaHome({ userId }: { userId: string }) {
       <div className="intro"><span className="eyebrow">Empresa · {co.nombre}</span><h2>Solicitar personal</h2>
         <p>Describe el puesto. Factor-Gente filtra su base de candidatos y le envía una terna que se apega al perfil. Solo paga si contrata.</p></div>
       <div className="grid">
-        <VacancyForm company={co} onSaved={load} />
+        <VacancyForm company={co} tarifas={tarifas} onSaved={load} />
         <div className="stack">
           <section className="card">
             <div className="card-h"><h3>Mis solicitudes</h3><p>{vacs.length}</p></div>
@@ -50,11 +56,15 @@ export function EmpresaHome({ userId }: { userId: string }) {
                   <div className="item" key={v.id}>
                     <div className="item-h"><strong>{v.puesto} <span className="hint">× {v.n}</span></strong><VacPill e={v.estado} /></div>
                     <div className="meta"><span>Alta {fmtDate(v.created_at)}</span><span className="mono">{money(v.smin)}–{money(v.smax)}</span><span>{v.tipo}</span><span>{v.pub === 'anonima' ? 'Publicada sin nombre' : 'Privada'}</span></div>
-                    {ts.length ? <p className="hint">Terna recibida. Los datos de contacto se liberan cuando confirmas la entrevista.</p> : <p className="hint">Factor-Gente está buscando candidatos.</p>}
+                    {co.requiere_anticipo && !v.anticipo_pagado && v.estado !== 'Cubierta' && v.estado !== 'Cancelada' && (
+                      <p className="note">Para empezar la búsqueda se requiere un anticipo de <b className="mono">{money(anticipoDe(v, tarifas))}</b>, que se descuenta del cobro final. Factor-Gente te enviará los datos para el pago.</p>
+                    )}
+                    {ts.length ? <p className="hint">Terna recibida. Pide entrevista y Factor-Gente la coordina con el candidato.</p> : <p className="hint">Factor-Gente está buscando candidatos.</p>}
                     {ts.map((t) => (
                       <div className="item surface" key={t.candidate_id}>
-                        <div className="item-h"><strong>{t.liberado ? t.nombre : 'Candidato ' + 'ABCDE'[t.letra - 1]}</strong>
-                          {t.liberado ? <span className="pill ok">Contacto liberado</span> : t.quiere ? <span className="pill info">Pediste entrevista</span> : null}</div>
+                        <div className="item-h"><strong>{t.nombre ?? 'Candidato ' + 'ABCDE'[t.letra - 1]}</strong>
+                          {t.cita ? <span className="pill ok">Entrevista agendada</span> : t.quiere ? <span className="pill info">Pediste entrevista</span> : null}</div>
+                        {t.cita && <p className="note"><b>Entrevista:</b> {fmtCita(t.cita)} · {t.lugar}. Factor-Gente ya le avisó al candidato.</p>}
                         <div className="ficha">
                           <div><span>Último puesto</span>{t.ult_puesto ?? '—'} · {t.ult_tiempo ?? ''}</div>
                           <div><span>Estudios</span>{t.esco}</div>
@@ -66,9 +76,11 @@ export function EmpresaHome({ userId }: { userId: string }) {
                           <div><span>Perfil</span>{t.res ? perfilTexto(t.res) : 'Sin prueba'}</div>
                         </div>
                         {t.carta && <p className="hint">“{t.carta}”</p>}
-                        {t.liberado ? <p className="mono">WhatsApp: {t.tel}</p> : (
-                          <div className="actions"><button type="button" className={'btn sm' + (t.quiere ? '' : ' primary')} disabled={t.quiere} onClick={() => quiero(v.id, t.candidate_id)}>{t.quiere ? 'Solicitud enviada' : 'Quiero entrevistarlo'}</button></div>
+                        {t.liberado && t.tel && <p className="mono">WhatsApp: {t.tel}</p>}
+                        {!t.quiere && !t.cita && (
+                          <div className="actions"><button type="button" className="btn sm primary" onClick={() => quiero(v.id, t.candidate_id)}>Quiero entrevistarlo</button></div>
                         )}
+                        {t.quiere && !t.cita && <p className="hint">Factor-Gente te confirmará fecha y hora.</p>}
                       </div>
                     ))}
                   </div>
@@ -77,6 +89,19 @@ export function EmpresaHome({ userId }: { userId: string }) {
               {!vacs.length && <p className="empty">Aún no hay solicitudes.</p>}
             </div>
           </section>
+          {cobros.length > 0 && (
+            <section className="card">
+              <div className="card-h"><h3>Mis pagos</h3></div>
+              <div className="list">{cobros.map((c) => (
+                <div className="item" key={c.id}>
+                  <div className="item-h"><strong>{c.concepto} · {vacs.find((v) => v.id === c.vacancy_id)?.puesto}</strong>
+                    {c.pagado ? <span className="pill ok">Pagado</span> : c.vence && c.vence < todayIso() ? <span className="pill bad">Vencido</span> : <span className="pill warn">Pendiente</span>}</div>
+                  <div className="meta"><span className="mono">{money(c.monto)}</span>{!c.pagado && c.vence && <span>Vence {fmtDate(c.vence)}</span>}{c.pagado && <span>Pagado {fmtDate(c.pagado)}</span>}</div>
+                </div>
+              ))}</div>
+              <p className="hint">La garantía de reemplazo de 60 días aplica cuando la colocación está pagada.</p>
+            </section>
+          )}
           <RefCard refs={refs} />
           <ServicesCard tipo="Empresa" nombre={co.nombre} tel={co.tel ?? ''} companyId={co.id} />
         </div>
@@ -125,7 +150,7 @@ const BLANK = {
   salidas: '0', motivo: 'Sueldo', sexo: 'Indistinto', edad_min: '', edad_max: '', just: '', pub: 'anonima', acepta: false,
 };
 
-function VacancyForm({ company, onSaved }: { company: Company; onSaved: () => void }) {
+function VacancyForm({ company, tarifas, onSaved }: { company: Company; tarifas: Tarifas; onSaved: () => void }) {
   const [d, setD] = useState(BLANK);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -209,9 +234,11 @@ function VacancyForm({ company, onSaved }: { company: Company; onSaved: () => vo
           <label><input type="radio" name="pub" checked={d.pub === 'privada'} onChange={() => set('pub', 'privada')} /> Privada: solo Factor-Gente la ve</label>
         </div>
         <div className="terms"><b>Condiciones del servicio</b><ul>
-          <li>Operativo: cuota fija por persona colocada. Administrativo y supervisión: equivalente a un mes del sueldo ofrecido.</li>
-          <li>Se paga cuando la persona ingresa a trabajar.</li>
-          <li>Garantía: si la persona sale en los primeros 60 días, enviamos reemplazo sin costo.</li>
+          <li>Operativo: {money(tarifas.cuota_operativo)} por persona colocada. Administrativo y supervisión: {tarifas.meses_admin === 1 ? 'un mes' : `${tarifas.meses_admin} meses`} del sueldo ofrecido.</li>
+          {company.requiere_anticipo && <li>Anticipo del {tarifas.anticipo_pct}% para iniciar la búsqueda; se descuenta del cobro final.</li>}
+          <li>Factor-Gente coordina las entrevistas con los candidatos.</li>
+          <li>El resto se paga dentro de los {tarifas.plazo_dias} días siguientes a que la persona ingresa a trabajar.</li>
+          <li>Garantía: si la persona sale en los primeros 60 días, enviamos reemplazo sin costo, siempre que la colocación esté pagada.</li>
           <li>Si la empresa contrata a un candidato presentado por Factor-Gente en los 12 meses siguientes, se cobra la colocación.</li>
           <li>La empresa contrata directamente; Factor-Gente solo recluta y filtra.</li></ul></div>
         <div className="checks"><Check checked={d.acepta} onChange={(v) => set('acepta', v)}>Acepto las condiciones del servicio.</Check></div>
