@@ -35,16 +35,45 @@ Cómo funciona:
 
 ## 4. Facebook: para empresas
 
+### 4a. Versión completa (propuesta de valor)
+
 ¿Contratas y a los dos meses ya se fueron? 🔄
 
-Factor-Gente es un servicio de reclutamiento con filtro para empresas de San Francisco del Rincón, Purísima y León. Revisamos experiencia, sueldo, horario, distancia y perfil de cada candidato, y te presentamos solo a quienes encajan con tu puesto.
+Una bolsa de trabajo te llena de currículums y te deja a ti todo el trabajo: revisarlos, llamar, entrevistar a 15 personas… y aun así equivocarte.
 
-✔️ Terna de 2 o 3 candidatos filtrados
-✔️ Nosotros coordinamos las entrevistas
+**Factor-Gente es diferente: el filtro lo hacemos nosotros.**
+
+Tú solo subes tu vacante. Nosotros:
+🔎 Revisamos experiencia, habilidades, sueldo que buscan, horario y distancia de cada candidato.
+🧠 Aplicamos pruebas de perfil para conocer su personalidad y su forma de trabajar.
+🎯 Seleccionamos a los 2 o 3 que mejor encajan con tu puesto y con tu empresa.
+📅 Coordinamos las entrevistas por ti.
+
+Tú solo entrevistas a quienes ya pasaron el filtro y decides.
+
 ✔️ Pagas solo si contratas
-✔️ Garantía de reemplazo en los primeros 60 días
+✔️ Garantía: si la persona se va en los primeros 60 días, te enviamos un reemplazo sin costo
+✔️ Conocemos la zona: San Francisco del Rincón, Purísima y León
 
-Solicita personal aquí 👉 factorgente.jcflorido.me
+Menos tiempo perdido, menos rotación y gente que sí se queda.
+
+Sube tu vacante en 5 minutos 👉 factorgente.jcflorido.me
+
+### 4b. Versión corta
+
+Deja de revisar currículums. 📄❌
+
+En Factor-Gente tú solo subes tu vacante; nosotros filtramos, aplicamos pruebas de perfil y te presentamos a los 2 o 3 candidatos que mejor encajan. También coordinamos las entrevistas.
+
+Pagas solo si contratas, con garantía de reemplazo de 60 días.
+
+SFR · Purísima · León 👉 factorgente.jcflorido.me
+
+### 4c. Texto para imagen o cartel (pocas palabras)
+
+Título: Tú subes la vacante. Nosotros encontramos a la persona.
+Subtítulo: Filtramos, aplicamos pruebas y te presentamos solo a quien encaja.
+Remate: Pagas solo si contratas · factorgente.jcflorido.me
 
 ## Consejos
 - Publica el de candidatos en grupos locales de empleo ("Empleos SFR", "Bolsa de trabajo Purísima", etc.) y en tu Facebook personal.
