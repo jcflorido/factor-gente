@@ -4,7 +4,14 @@
 - Carrusel, en este orden: `1-problema.png`, `2-como-funciona.png`, `3-sin-riesgo.png`, `4-llamado.png`
 - Imagen sola: `imagen-sola.png`
 
-## 0. Página de Facebook de Factor-Gente (si no existe)
+## Texto si el anuncio sale desde la página profesional de JC Florido
+> Presento Factor-Gente, mi nuevo servicio de reclutamiento con filtro para empresas de San Francisco del Rincón, Purísima y León.
+>
+> ¿Contratas y a los dos meses ya se fueron? Tú solo me dices qué puesto necesitas; yo filtro a los candidatos, aplico pruebas de perfil y te presento a los 2 o 3 que mejor encajan. También coordino las entrevistas.
+>
+> Pagas solo si contratas, con garantía de reemplazo de 60 días. Escríbeme y platicamos 👇
+
+## 0. Página de Facebook de Factor-Gente (opcional; para arrancar se usa la página profesional de JC)
 1. facebook.com/pages/create → nombre **Factor-Gente**, categoría **Agencia de empleo**.
 2. Foto de perfil: `public/icons/icon-512.png`. Portada: `imagen-sola.png`.
 3. En "Información": sitio web `https://factorgente.jcflorido.me` y zona: San Francisco del Rincón, Purísima y León.
