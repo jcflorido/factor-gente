@@ -18,6 +18,14 @@
 - En iPhone requiere instalar la app en la pantalla de inicio.
 - WhatsApp queda como respaldo.
 
+### 3. Vacantes más visibles para candidatos
+- Mostrar las vacantes publicadas en la página de inicio, sin registrarse, con botón "Regístrate para postularte".
+- Ordenar primero las vacantes del área y municipio(s) del candidato.
+- Avisar al candidato cuando salga una vacante que le queda (usa las notificaciones del punto 2).
+
+### 4. Medir de dónde llegan
+- Pregunta "¿Cómo nos conociste?" (Facebook, Google, recomendación, cartel, otro) al registrar empresa y candidato; resumen en el panel.
+
 ## Antes de cobrar la primera colocación
 - Registro ante la STPS como agencia de colocación (trámite STPS-13-001).
 - Cláusula: los honorarios nunca se descuentan del salario del trabajador.
