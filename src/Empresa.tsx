@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { AREAS, ESCO, HORARIO, MUNI, PAGO, PREST, TARIFAS_BASE, anticipoDe, fmtCita, fmtDate, money, perfilTexto, todayIso } from './lib/catalog';
 import { supabase } from './lib/supabase';
 import type { Cobro, Company, RefSalary, Tarifas, Terna, Vacancy } from './lib/types';
-import { Check, Checks, ContactCard, F, Radios, RefCard, Sel, ServicesCard, Skills, toast } from './ui';
+import { DEMO_CO, DEMO_COBROS, DEMO_TERNAS, DEMO_VAC } from './lib/demo';
+import { Check, Checks, ContactCard, F, PREVIEW_MSG, Radios, RefCard, Sel, ServicesCard, Skills, toast } from './ui';
 
-export function EmpresaHome({ userId }: { userId: string }) {
+export function EmpresaHome({ userId, preview }: { userId: string; preview?: boolean }) {
   const [co, setCo] = useState<Company | null | undefined>(undefined);
   const [vacs, setVacs] = useState<Vacancy[]>([]);
   const [ternas, setTernas] = useState<Terna[]>([]);
@@ -27,13 +28,15 @@ export function EmpresaHome({ userId }: { userId: string }) {
     setRefs((r.data as RefSalary[]) ?? []);
     setTarifas((f.data as Tarifas) ?? TARIFAS_BASE);
     setCobros((c.data as Cobro[]) ?? []);
-  }, [userId]);
+    if (preview) { setCo(DEMO_CO); setVacs([DEMO_VAC]); setTernas(DEMO_TERNAS); setCobros(DEMO_COBROS); }
+  }, [userId, preview]);
   useEffect(() => { load(); }, [load]);
 
   if (co === undefined) return <p className="empty">Cargando…</p>;
   if (!co) return <CompanyForm onSaved={load} />;
 
   const quiero = async (vid: string, cid: string) => {
+    if (preview) return toast(PREVIEW_MSG);
     const { error } = await supabase.rpc('request_interview', { p_vacancy: vid, p_candidate: cid });
     if (error) return toast(error.message, true);
     toast('Listo. Factor-Gente te confirmará fecha y hora de la entrevista.');
@@ -45,7 +48,7 @@ export function EmpresaHome({ userId }: { userId: string }) {
       <div className="intro"><span className="eyebrow">Empresa · {co.nombre}</span><h2>Solicitar personal</h2>
         <p>Describe el puesto. Factor-Gente filtra su base de candidatos y le envía una terna que se apega al perfil. Solo paga si contrata.</p></div>
       <div className="grid">
-        <VacancyForm company={co} tarifas={tarifas} onSaved={load} />
+        <VacancyForm company={co} tarifas={tarifas} onSaved={load} preview={preview} />
         <div className="stack">
           <section className="card">
             <div className="card-h"><h3>Mis solicitudes</h3><p>{vacs.length}</p></div>
@@ -89,7 +92,7 @@ export function EmpresaHome({ userId }: { userId: string }) {
               {!vacs.length && <p className="empty">Aún no hay solicitudes.</p>}
             </div>
           </section>
-          <ContactCard tipo="Empresa" nombre={co.nombre} tel={co.tel ?? ''} companyId={co.id} vacantes={vacs.map((v) => ({ id: v.id, puesto: v.puesto }))} />
+          <ContactCard tipo="Empresa" nombre={co.nombre} tel={co.tel ?? ''} companyId={co.id} vacantes={vacs.map((v) => ({ id: v.id, puesto: v.puesto }))} preview={preview} />
           {cobros.length > 0 && (
             <section className="card">
               <div className="card-h"><h3>Mis pagos</h3></div>
@@ -100,11 +103,11 @@ export function EmpresaHome({ userId }: { userId: string }) {
                   <div className="meta"><span className="mono">{money(c.monto)}</span>{!c.pagado && c.vence && <span>Vence {fmtDate(c.vence)}</span>}{c.pagado && <span>Pagado {fmtDate(c.pagado)}</span>}</div>
                 </div>
               ))}</div>
-              <p className="hint">La garantía de reemplazo de 60 días aplica cuando la colocación está pagada.</p>
+              <p className="hint">La garantía de reemplazo de {tarifas.garantia_dias} días aplica cuando la colocación está pagada.</p>
             </section>
           )}
           <RefCard refs={refs} />
-          <ServicesCard tipo="Empresa" nombre={co.nombre} tel={co.tel ?? ''} companyId={co.id} />
+          <ServicesCard tipo="Empresa" nombre={co.nombre} tel={co.tel ?? ''} companyId={co.id} preview={preview} />
         </div>
       </div>
     </>
@@ -151,7 +154,7 @@ const BLANK = {
   salidas: '0', motivo: 'Sueldo', sexo: 'Indistinto', edad_min: '', edad_max: '', just: '', pub: 'anonima', acepta: false,
 };
 
-function VacancyForm({ company, tarifas, onSaved }: { company: Company; tarifas: Tarifas; onSaved: () => void }) {
+function VacancyForm({ company, tarifas, onSaved, preview }: { company: Company; tarifas: Tarifas; onSaved: () => void; preview?: boolean }) {
   const [d, setD] = useState(BLANK);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -165,6 +168,7 @@ function VacancyForm({ company, tarifas, onSaved }: { company: Company; tarifas:
     if (interno && !d.just.trim()) return setErr('Explica el motivo por el que el puesto requiere sexo o edad.');
     if ((emin && emin < 18) || (emax && emax < 18)) return setErr('Las vacantes son solo para mayores de 18 años.');
     if (!d.acepta) return setErr('Para enviar, acepta las condiciones del servicio.');
+    if (preview) return toast(PREVIEW_MSG);
     setBusy(true);
     const { error } = await supabase.from('vacancies').insert({
       company_id: company.id, puesto: d.puesto.trim(), area: d.area, n: Number(d.n) || 1, zona: d.zona, funciones: d.funciones.trim(),
@@ -239,7 +243,7 @@ function VacancyForm({ company, tarifas, onSaved }: { company: Company; tarifas:
           {company.requiere_anticipo && <li>Anticipo del {tarifas.anticipo_pct}% para iniciar la búsqueda; se descuenta del cobro final.</li>}
           <li>Factor-Gente coordina las entrevistas con los candidatos.</li>
           <li>El resto se paga dentro de los {tarifas.plazo_dias} días siguientes a que la persona ingresa a trabajar.</li>
-          <li>Garantía: si la persona sale en los primeros 60 días, enviamos reemplazo sin costo, siempre que la colocación esté pagada.</li>
+          <li>Garantía: si la persona sale en los primeros {tarifas.garantia_dias} días, enviamos reemplazo sin costo, siempre que la colocación esté pagada.</li>
           <li>Si la empresa contrata a un candidato presentado por Factor-Gente en los 12 meses siguientes, se cobra la colocación.</li>
           <li>La empresa contrata directamente; Factor-Gente solo recluta y filtra.</li></ul></div>
         <div className="checks"><Check checked={d.acepta} onChange={(v) => set('acepta', v)}>Acepto las condiciones del servicio.</Check></div>

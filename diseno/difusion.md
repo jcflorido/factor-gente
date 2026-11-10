@@ -29,7 +29,7 @@ Cómo funciona:
 • Me dices qué perfil buscas (lo llenas en 5 minutos en factorgente.jcflorido.me).
 • Yo filtro y te mando la terna.
 • Yo coordino las entrevistas.
-• Pagas solo si contratas, y si la persona se va en los primeros 60 días te mando un reemplazo sin costo.
+• Pagas solo si contratas, y si la persona se va en los primeros 30 días te mando un reemplazo sin costo.
 
 ¿Tienes alguna vacante abierta ahorita? Con gusto te platico más.
 
@@ -52,7 +52,7 @@ Tú solo subes tu vacante. Nosotros:
 Tú solo entrevistas a quienes ya pasaron el filtro y decides.
 
 ✔️ Pagas solo si contratas
-✔️ Garantía: si la persona se va en los primeros 60 días, te enviamos un reemplazo sin costo
+✔️ Garantía: si la persona se va en los primeros 30 días, te enviamos un reemplazo sin costo
 ✔️ Conocemos la zona: San Francisco del Rincón, Purísima y León
 
 Menos tiempo perdido, menos rotación y gente que sí se queda.
@@ -65,7 +65,7 @@ Deja de revisar currículums. 📄❌
 
 En Factor-Gente tú solo subes tu vacante; nosotros filtramos, aplicamos pruebas de perfil y te presentamos a los 2 o 3 candidatos que mejor encajan. También coordinamos las entrevistas.
 
-Pagas solo si contratas, con garantía de reemplazo de 60 días.
+Pagas solo si contratas, con garantía de reemplazo de 30 días.
 
 SFR · Purísima · León 👉 factorgente.jcflorido.me
 

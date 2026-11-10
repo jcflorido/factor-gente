@@ -13,6 +13,42 @@ export function toast(msg: string, err = false) {
   setTimeout(() => el.remove(), 4200);
 }
 
+export const PREVIEW_MSG = 'Vista previa: en esta pantalla nada se guarda.';
+
+// Compartir el enlace de la app: abre las apps del celular (WhatsApp, Facebook…) o copia el enlace
+export function ShareButtons({ texto }: { texto: string }) {
+  const url = window.location.origin;
+  const copiar = async () => {
+    try { await navigator.clipboard.writeText(url); toast('Enlace copiado. Ya puedes pegarlo donde quieras.'); }
+    catch { toast('No se pudo copiar. Mantén presionado el enlace para copiarlo.', true); }
+  };
+  const compartir = async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Factor·Gente', text: texto, url }); } catch { /* la persona canceló */ }
+    } else {
+      try { await navigator.clipboard.writeText(`${texto} ${url}`); toast('Mensaje y enlace copiados. Pégalos en WhatsApp, Facebook o correo.'); }
+      catch { copiar(); }
+    }
+  };
+  return (
+    <div className="actions">
+      <button type="button" className="btn primary" onClick={compartir}>Compartir</button>
+      <button type="button" className="btn" onClick={copiar}>Copiar enlace</button>
+    </div>
+  );
+}
+
+export function ShareCard({ titulo, texto, hint }: { titulo: string; texto: string; hint?: string }) {
+  return (
+    <section className="card">
+      <h3>{titulo}</h3>
+      {hint && <p className="hint">{hint}</p>}
+      <p className="mono share-url">{window.location.origin.replace(/^https?:\/\//, '')}</p>
+      <ShareButtons texto={texto} />
+    </section>
+  );
+}
+
 export function Logo({ size = 30 }: { size?: number }) {
   return (
     <svg className="logo" width={size} height={size} viewBox="0 0 82 80" aria-hidden="true">
@@ -100,7 +136,7 @@ export function Skills({ area, value, onChange, ejemplo }: { area: string; value
   );
 }
 
-export function ServicesCard({ tipo, nombre, tel, candidateId, companyId }: { tipo: 'Candidato' | 'Empresa'; nombre: string; tel: string; candidateId?: string; companyId?: string }) {
+export function ServicesCard({ tipo, nombre, tel, candidateId, companyId, preview }: { tipo: 'Candidato' | 'Empresa'; nombre: string; tel: string; candidateId?: string; companyId?: string; preview?: boolean }) {
   const [sv, setSv] = useState<string[]>([]);
   const [t, setT] = useState(tel);
   const [via, setVia] = useState('WhatsApp');
@@ -108,6 +144,7 @@ export function ServicesCard({ tipo, nombre, tel, candidateId, companyId }: { ti
   const enviar = async () => {
     if (!sv.length) return toast('Elige al menos un servicio.', true);
     if (!t.trim()) return toast('Escribe tu WhatsApp o teléfono para poder contactarte.', true);
+    if (preview) return toast(PREVIEW_MSG);
     setBusy(true);
     const { data: u } = await supabase.auth.getUser();
     const { error } = await supabase.from('leads').insert({
@@ -133,21 +170,23 @@ export function ServicesCard({ tipo, nombre, tel, candidateId, companyId }: { ti
 }
 
 // Dudas para Factor-Gente: llegan a la bandeja del panel y JC contesta por WhatsApp
-export function ContactCard({ tipo, nombre, tel, candidateId, companyId, vacantes = [] }: {
+export function ContactCard({ tipo, nombre, tel, candidateId, companyId, vacantes = [], preview }: {
   tipo: 'Candidato' | 'Empresa'; nombre: string; tel: string; candidateId?: string; companyId?: string;
-  vacantes?: { id: string; puesto: string }[];
+  vacantes?: { id: string; puesto: string }[]; preview?: boolean;
 }) {
   const [texto, setTexto] = useState('');
   const [vac, setVac] = useState('');
   const [mios, setMios] = useState<Mensaje[]>([]);
   const [busy, setBusy] = useState(false);
   const cargar = useCallback(async () => {
+    if (preview) return;
     const { data } = await supabase.from('mensajes').select('*').order('created_at', { ascending: false }).limit(5);
     setMios((data as Mensaje[]) ?? []);
-  }, []);
+  }, [preview]);
   useEffect(() => { cargar(); }, [cargar]);
   const enviar = async () => {
     if (!texto.trim()) return toast('Escribe tu duda o comentario.', true);
+    if (preview) return toast(PREVIEW_MSG);
     setBusy(true);
     const { error } = await supabase.from('mensajes').insert({
       tipo, nombre, tel, texto: texto.trim(), candidate_id: candidateId ?? null, company_id: companyId ?? null, vacancy_id: vac || null,

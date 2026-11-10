@@ -9,7 +9,7 @@
 >
 > ¿Contratas y a los dos meses ya se fueron? Tú solo me dices qué puesto necesitas; yo filtro a los candidatos, aplico pruebas de perfil y te presento a los 2 o 3 que mejor encajan. También coordino las entrevistas.
 >
-> Pagas solo si contratas, con garantía de reemplazo de 60 días. Escríbeme y platicamos 👇
+> Pagas solo si contratas, con garantía de reemplazo de 30 días. Escríbeme y platicamos 👇
 
 ## 0. Página de Facebook de Factor-Gente (opcional; para arrancar se usa la página profesional de JC)
 1. facebook.com/pages/create → nombre **Factor-Gente**, categoría **Agencia de empleo**.
@@ -33,7 +33,7 @@
 Crea **dos anuncios** en el mismo conjunto para ver cuál funciona mejor: uno con el carrusel y otro con la imagen sola.
 
 **Texto principal:**
-> ¿Contratas y a los dos meses ya se fueron? En Factor-Gente tú solo subes tu vacante; nosotros filtramos, aplicamos pruebas de perfil y te presentamos a los 2 o 3 candidatos que mejor encajan. También coordinamos las entrevistas. Pagas solo si contratas, con garantía de reemplazo de 60 días. SFR · Purísima · León.
+> ¿Contratas y a los dos meses ya se fueron? En Factor-Gente tú solo subes tu vacante; nosotros filtramos, aplicamos pruebas de perfil y te presentamos a los 2 o 3 candidatos que mejor encajan. También coordinamos las entrevistas. Pagas solo si contratas, con garantía de reemplazo de 30 días. SFR · Purísima · León.
 
 **Títulos de cada tarjeta del carrusel:**
 1. ¿Se te va la gente?

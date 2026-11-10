@@ -1,6 +1,6 @@
 import type { Candidate, RefSalary, Res, Tarifas, Vacancy } from './types';
 
-export const TARIFAS_BASE: Tarifas = { cuota_operativo: 2500, meses_admin: 1, anticipo_pct: 30, plazo_dias: 7 };
+export const TARIFAS_BASE: Tarifas = { cuota_operativo: 2500, meses_admin: 1, anticipo_pct: 30, plazo_dias: 7, garantia_dias: 30 };
 
 // Cuota por persona colocada: fija en operativo; en administrativo y supervisión, meses del sueldo ofrecido (punto medio del rango)
 export function cuota(v: Pick<Vacancy, 'area' | 'smin' | 'smax'>, t: Tarifas): number {

@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { AREAS, AREA_HINT, DISP, ESCO, HORARIO, ITEMS, MUNI, PAGO, SALIDA, SCALE, TIEMPO, TRANSP, money } from './lib/catalog';
 import { supabase } from './lib/supabase';
 import type { Candidate, PublicVacancy } from './lib/types';
-import { Aviso, Check, Checks, ContactCard, F, Radios, Sel, ServicesCard, Skills, toast } from './ui';
+import { DEMO_CAND } from './lib/demo';
+import { Aviso, Check, Checks, ContactCard, F, PREVIEW_MSG, Radios, Sel, ServicesCard, ShareCard, Skills, toast } from './ui';
 
 interface Draft {
   nombre: string; edad: string; sexo: string; tel: string; correo: string; municipio: string; colonia: string; esco: string;
@@ -31,9 +32,9 @@ function toDraft(c: Candidate | null): Draft {
 }
 
 // Formulario de perfil: lo usa el candidato, y el administrador para el registro asistido o para corregir datos
-export function CandidateForm({ initial, mode, userId, onSaved, onCancel }: {
+export function CandidateForm({ initial, mode, userId, onSaved, onCancel, preview }: {
   initial: Candidate | null; mode: 'self' | 'asistido' | 'admin'; userId?: string;
-  onSaved: (c: Candidate) => void; onCancel?: () => void;
+  onSaved: (c: Candidate) => void; onCancel?: () => void; preview?: boolean;
 }) {
   const [d, setD] = useState<Draft>(() => toDraft(initial));
   const [busy, setBusy] = useState(false);
@@ -48,6 +49,7 @@ export function CandidateForm({ initial, mode, userId, onSaved, onCancel }: {
     const edad = Number(d.edad);
     if (!edad || edad < 18) return setErr('Factor-Gente solo registra personas mayores de 18 años.');
     if (!d.mov.length) return setErr('Marca al menos un municipio donde pueda trabajar.');
+    if (preview) return toast(PREVIEW_MSG);
     const row = {
       nombre: d.nombre.trim(), edad, sexo: d.sexo, tel: d.tel.trim(), correo: d.correo.trim() || null, municipio: d.municipio,
       colonia: d.colonia.trim() || null, esco: d.esco, area: d.area, puesto: d.puesto.trim() || null, funciones: d.funciones.trim() || null,
@@ -159,13 +161,18 @@ export function CandidateForm({ initial, mode, userId, onSaved, onCancel }: {
 }
 
 // Pantalla del candidato que entra desde su celular
-export function CandidatoHome({ userId, onDeleted }: { userId: string; onDeleted: () => void }) {
+export function CandidatoHome({ userId, onDeleted, preview }: { userId: string; onDeleted: () => void; preview?: boolean }) {
   const [c, setC] = useState<Candidate | null | undefined>(undefined);
   const [vacs, setVacs] = useState<PublicVacancy[]>([]);
   const [ints, setInts] = useState<string[]>([]);
   const [test, setTest] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    if (preview) {
+      const b = await supabase.rpc('public_vacancies');
+      setC(DEMO_CAND); setVacs((b.data as PublicVacancy[]) ?? []); setTest('asignada'); setInts([]);
+      return;
+    }
     const [a, b, t] = await Promise.all([
       supabase.from('candidates').select('*').eq('user_id', userId).maybeSingle(),
       supabase.rpc('public_vacancies'),
@@ -178,13 +185,14 @@ export function CandidatoHome({ userId, onDeleted }: { userId: string; onDeleted
       const i = await supabase.from('interests').select('vacancy_id').eq('candidate_id', (a.data as Candidate).id);
       setInts((i.data ?? []).map((x: { vacancy_id: string }) => x.vacancy_id));
     }
-  }, [userId]);
+  }, [userId, preview]);
   useEffect(() => { load(); }, [load]);
 
   if (c === undefined) return <p className="empty">Cargando…</p>;
 
   const toggleInt = async (vid: string) => {
     if (!c) return;
+    if (preview) return toast(PREVIEW_MSG);
     if (ints.includes(vid)) {
       await supabase.from('interests').delete().eq('candidate_id', c.id).eq('vacancy_id', vid);
       setInts(ints.filter((x) => x !== vid));
@@ -203,9 +211,9 @@ export function CandidatoHome({ userId, onDeleted }: { userId: string; onDeleted
         <p className="hint">Este celular recuerda tu perfil. Si cambias de celular, escríbele a Factor-Gente para recuperar tus datos.</p>
       </div>
       <div className="grid">
-        <CandidateForm key={c?.id ?? 'nuevo'} initial={c} mode="self" userId={userId} onSaved={(x) => { setC(x); load(); }} />
+        <CandidateForm key={c?.id ?? 'nuevo'} initial={c} mode="self" userId={userId} preview={preview} onSaved={(x) => { setC(x); load(); }} />
         <div className="stack">
-          {c && <TestCard estado={test} permiso={c.consent_pruebas} onDone={() => setTest('completada')} />}
+          {c && <TestCard estado={test} permiso={c.consent_pruebas} preview={preview} onDone={() => setTest('completada')} />}
           <section className="card">
             <div className="card-h"><h3>Vacantes disponibles</h3><p>{vacs.length} publicadas</p></div>
             <div className="list">
@@ -221,21 +229,24 @@ export function CandidatoHome({ userId, onDeleted }: { userId: string; onDeleted
             </div>
             <p className="hint">El nombre de la empresa se da a conocer cuando avanzas en el proceso.</p>
           </section>
-          {c && <ContactCard tipo="Candidato" nombre={c.nombre} tel={c.tel} candidateId={c.id} />}
-          {c && <ServicesCard tipo="Candidato" nombre={c.nombre} tel={c.tel} candidateId={c.id} />}
-          {c && <DeleteAccount onDeleted={onDeleted} />}
+          {c && <ContactCard tipo="Candidato" nombre={c.nombre} tel={c.tel} candidateId={c.id} preview={preview} />}
+          <ShareCard titulo="¿Conoces a alguien que busca trabajo?" hint="Compártele Factor-Gente por WhatsApp o Facebook, o copia el enlace."
+            texto="¿Buscas trabajo en SFR, Purísima o León? Regístrate gratis en Factor-Gente desde tu celular:" />
+          {c && <ServicesCard tipo="Candidato" nombre={c.nombre} tel={c.tel} candidateId={c.id} preview={preview} />}
+          {c && <DeleteAccount onDeleted={onDeleted} preview={preview} />}
         </div>
       </div>
     </>
   );
 }
 
-function TestCard({ estado, permiso, onDone }: { estado: string | null; permiso: boolean; onDone: () => void }) {
+function TestCard({ estado, permiso, onDone, preview }: { estado: string | null; permiso: boolean; onDone: () => void; preview?: boolean }) {
   const [open, setOpen] = useState(false);
   const [ans, setAns] = useState<number[]>(Array(20).fill(0));
   const [busy, setBusy] = useState(false);
   const done = ans.filter(Boolean).length;
   const enviar = async () => {
+    if (preview) return toast(PREVIEW_MSG);
     setBusy(true);
     const { error } = await supabase.rpc('submit_test', { p_answers: ans });
     setBusy(false);
@@ -276,9 +287,10 @@ function TestCard({ estado, permiso, onDone }: { estado: string | null; permiso:
   );
 }
 
-function DeleteAccount({ onDeleted }: { onDeleted: () => void }) {
+function DeleteAccount({ onDeleted, preview }: { onDeleted: () => void; preview?: boolean }) {
   const [ask, setAsk] = useState(false);
   const borrar = async () => {
+    if (preview) { setAsk(false); return toast(PREVIEW_MSG); }
     const { error } = await supabase.rpc('delete_my_account');
     if (error) return toast('No se pudo borrar: ' + error.message, true);
     await supabase.auth.signOut();

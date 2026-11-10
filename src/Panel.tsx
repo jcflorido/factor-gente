@@ -1,23 +1,25 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
-import { ESTADOS, TARIFAS_BASE, TRAITS, anticipoDe, cuota, daysSince, fmtCita, fmtDate, isInc, llega, match, money, norm, pasaInterno, perfilTexto, plusDays, refFor, todayIso } from './lib/catalog';
+import { ESTADOS, TARIFAS_BASE, TRAITS, anticipoDe, cuota, daysSince, fmtCita, fmtDate, isInc, llega, match, money, norm, pasaInterno, perfilTexto, refFor, todayIso } from './lib/catalog';
 import { supabase } from './lib/supabase';
-import type { Candidate, Cobro, Company, Interest, Lead, Mensaje, Placement, RefSalary, Shortlist, Tarifas, Test, Vacancy } from './lib/types';
+import type { Candidate, Cobro, Company, Interest, Lead, Mensaje, Placement, RefSalary, Shortlist, Staff, Tarifas, Test, Vacancy } from './lib/types';
 import { CandidateForm } from './Candidato';
 import { VacPill } from './Empresa';
-import { F, Logo, RefCard, Sel, toast } from './ui';
+import { F, Logo, RefCard, Sel, ShareButtons, toast } from './ui';
 
 interface Data {
   cands: Candidate[]; vacs: Vacancy[]; cos: Company[]; tests: Test[]; short: Shortlist[];
-  places: Placement[]; ints: Interest[]; leads: Lead[]; refs: RefSalary[]; cobros: Cobro[]; tarifas: Tarifas; msgs: Mensaje[];
+  places: Placement[]; ints: Interest[]; leads: Lead[]; refs: RefSalary[]; cobros: Cobro[]; tarifas: Tarifas; msgs: Mensaje[]; staff: Staff[];
 }
-const EMPTY: Data = { cands: [], vacs: [], cos: [], tests: [], short: [], places: [], ints: [], leads: [], refs: [], cobros: [], tarifas: TARIFAS_BASE, msgs: [] };
+const EMPTY: Data = { cands: [], vacs: [], cos: [], tests: [], short: [], places: [], ints: [], leads: [], refs: [], cobros: [], tarifas: TARIFAS_BASE, msgs: [], staff: [] };
 
 const ESTADO_PILL: Record<string, string> = { Disponible: 'ok', 'En proceso': 'info', Colocado: 'lea', Inactivo: 'bad' };
 
 type Run = (p: PromiseLike<{ error: { message: string } | null }>, ok?: string) => Promise<boolean>;
 
-export function Panel() {
+// rol 'admin' ve todo; 'reclutador' no ve cobros, tarifas ni equipo, y no borra
+export function Panel({ rol }: { rol: 'admin' | 'reclutador' }) {
+  const jefe = rol === 'admin';
   const [d, setD] = useState<Data>(EMPTY);
   const [selVac, setSelVac] = useState<string | null>(null);
   const [selCand, setSelCand] = useState<string | null>(null);
@@ -40,6 +42,7 @@ export function Panel() {
       supabase.from('cobros').select('*').order('created_at', { ascending: false }),
       supabase.from('tarifas').select('*').maybeSingle(),
       supabase.from('mensajes').select('*').order('created_at', { ascending: false }).limit(200),
+      supabase.rpc('list_staff'),
     ]);
     const bad = r.find((x) => x.error);
     if (bad?.error) toast('No se pudieron cargar los datos: ' + bad.error.message, true);
@@ -48,6 +51,7 @@ export function Panel() {
       tests: (r[3].data as Test[]) ?? [], short: (r[4].data as Shortlist[]) ?? [], places: (r[5].data as Placement[]) ?? [],
       ints: (r[6].data as Interest[]) ?? [], leads: (r[7].data as Lead[]) ?? [], refs: (r[8].data as RefSalary[]) ?? [],
       cobros: (r[9].data as Cobro[]) ?? [], tarifas: (r[10].data as Tarifas) ?? TARIFAS_BASE, msgs: (r[11].data as Mensaje[]) ?? [],
+      staff: (r[12].data as Staff[]) ?? [],
     });
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -66,15 +70,12 @@ export function Panel() {
     return true;
   };
 
-  // Contratado: se registra la colocación y el cobro (menos la parte del anticipo que ya pagó)
+  // Contratado: se registra la colocación; la base de datos genera sola el cobro (menos el anticipo pagado)
   const contratar = async (s: Shortlist) => {
     const vv = d.vacs.find((x) => x.id === s.vacancy_id);
     if (!vv) return;
-    const total = cuota(vv, d.tarifas);
-    const yaPagado = vv.anticipo_pagado ? Math.round(anticipoDe(vv, d.tarifas) / vv.n) : 0;
     const ok = await run(supabase.from('placements').insert({ candidate_id: s.candidate_id, vacancy_id: vv.id }));
     if (!ok) return;
-    await supabase.from('cobros').insert({ company_id: vv.company_id, vacancy_id: vv.id, candidate_id: s.candidate_id, concepto: 'Colocación', monto: Math.max(0, total - yaPagado), vence: plusDays(d.tarifas.plazo_dias) });
     await supabase.from('candidates').update({ estado: 'Colocado' }).eq('id', s.candidate_id);
     const colocados = d.places.filter((p) => p.vacancy_id === vv.id).length + 1;
     if (colocados >= vv.n) await supabase.from('vacancies').update({ estado: 'Cubierta' }).eq('id', vv.id);
@@ -111,7 +112,9 @@ export function Panel() {
       <div className="kpis">
         <div className="kpi"><span>Candidatos disponibles</span><b>{disp}</b><small>de {d.cands.length} registrados</small></div>
         <div className="kpi"><span>Vacantes abiertas</span><b>{abiertas}</b><small>{d.vacs.filter((x) => x.estado === 'Terna enviada').length} con terna enviada</small></div>
-        <div className="kpi"><span>Por cobrar</span><b className="mono">{money(porCobrar)}</b><small>{d.cobros.filter((c) => !c.pagado).length} cobros pendientes</small></div>
+        {jefe
+          ? <div className="kpi"><span>Por cobrar</span><b className="mono">{money(porCobrar)}</b><small>{d.cobros.filter((c) => !c.pagado).length} cobros pendientes</small></div>
+          : <div className="kpi"><span>Colocaciones</span><b>{d.places.length}</b><small>en seguimiento</small></div>}
         <div className="kpi"><span>Siguen a 90 días</span><b>{maduras.length ? Math.round((siguen / maduras.length) * 100) + '%' : '—'}</b><small>{siguen} de {maduras.length} con 90 días</small></div>
       </div>
 
@@ -146,22 +149,22 @@ export function Panel() {
               </div>
             );
           })}</div>
-          <p className="hint">Al marcar contratado se genera el cobro por {money(d.tarifas.cuota_operativo)} (operativo) o el mes de sueldo (administrativo), con {d.tarifas.plazo_dias} días para pagar.</p>
+          {jefe && <p className="hint">Al marcar contratado se genera el cobro por {money(d.tarifas.cuota_operativo)} (operativo) o el mes de sueldo (administrativo), con {d.tarifas.plazo_dias} días para pagar.</p>}
         </section>
       )}
 
       <div className="grid">
         <div className="stack">
-          {v ? <Sugeridos key={v.id} v={v} d={d} company={co(v.company_id)} testOf={testOf} filtroInterno={filtroInterno} setFiltroInterno={setFiltroInterno}
+          {v ? <Sugeridos key={v.id} v={v} d={d} jefe={jefe} company={co(v.company_id)} testOf={testOf} filtroInterno={filtroInterno} setFiltroInterno={setFiltroInterno}
               soloInc={soloInc} setSoloInc={setSoloInc} onCand={setSelCand} run={run} />
             : <section className="card"><h3>Sin vacantes todavía</h3><p className="empty">Cuando una empresa envíe una solicitud aparecerá aquí.</p></section>}
           {selCand && cand(selCand) && (
-            <Detalle c={cand(selCand)!} test={testOf(selCand)} run={run} onClose={() => setSelCand(null)}
+            <Detalle c={cand(selCand)!} test={testOf(selCand)} run={run} jefe={jefe} onClose={() => setSelCand(null)}
               onEdit={() => setForm({ mode: 'admin', c: cand(selCand)! })} />
           )}
-          <Cobros d={d} coName={coName} cand={cand} run={run} />
+          {jefe && <Cobros d={d} coName={coName} cand={cand} run={run} />}
           <Base cands={d.cands} buscar={buscar} setBuscar={setBuscar} onCand={setSelCand} />
-          <Seguimiento d={d} cand={cand} run={run} />
+          <Seguimiento d={d} cand={cand} run={run} jefe={jefe} />
         </div>
         <div className="stack">
           <section className="card">
@@ -174,7 +177,8 @@ export function Panel() {
             ))}{!d.vacs.length && <p className="empty">Aún no hay vacantes.</p>}</div>
           </section>
           <Difusion onAsistido={() => setForm({ mode: 'asistido', c: null })} />
-          <TarifasCard t={d.tarifas} run={run} />
+          {jefe && <TarifasCard t={d.tarifas} run={run} />}
+          {jefe && <Equipo staff={d.staff} run={run} />}
           <RefCard refs={d.refs} />
           <section className="card">
             <div className="card-h"><h3>Interesados en la consultora</h3><p>{d.leads.length}</p></div>
@@ -252,8 +256,8 @@ function Agendar({ s, titulo, tel, run }: { s: Shortlist; titulo: React.ReactNod
   );
 }
 
-function Sugeridos({ v, d, company, testOf, filtroInterno, setFiltroInterno, soloInc, setSoloInc, onCand, run }: {
-  v: Vacancy; d: Data; company?: Company; testOf: (id: string) => Test | undefined;
+function Sugeridos({ v, d, jefe, company, testOf, filtroInterno, setFiltroInterno, soloInc, setSoloInc, onCand, run }: {
+  v: Vacancy; d: Data; jefe: boolean; company?: Company; testOf: (id: string) => Test | undefined;
   filtroInterno: boolean; setFiltroInterno: (b: boolean) => void; soloInc: boolean; setSoloInc: (b: boolean) => void;
   onCand: (id: string) => void; run: Run;
 }) {
@@ -305,11 +309,11 @@ function Sugeridos({ v, d, company, testOf, filtroInterno, setFiltroInterno, sol
         <label className="inline-check">Estado <Sel value={v.estado} onChange={(e) => run(supabase.from('vacancies').update({ estado: e }).eq('id', v.id))} options={['Abierta', 'Terna enviada', 'Cubierta', 'Cancelada']} /></label>
       </div>
       <div className="meta">
-        <span>Cobro por persona: <b className="mono">{money(cuota(v, d.tarifas))}</b> × {v.n}</span>
+        {jefe && <span>Cobro por persona: <b className="mono">{money(cuota(v, d.tarifas))}</b> × {v.n}</span>}
         {pideAnticipo ? (v.anticipo_pagado ? <span className="pill ok">Anticipo pagado</span> : <>
-          <span className="pill warn">Anticipo pendiente: {money(montoAnticipo)}</span>
-          <button type="button" className="btn sm" onClick={registrarAnticipo}>Registrar anticipo pagado</button></>) : <span className="pill ok">Sin anticipo</span>}
-        {company && <label className="hint inline-check"><input type="checkbox" checked={!company.requiere_anticipo}
+          <span className="pill warn">Anticipo pendiente{jefe ? `: ${money(montoAnticipo)}` : ''}</span>
+          {jefe && <button type="button" className="btn sm" onClick={registrarAnticipo}>Registrar anticipo pagado</button>}</>) : <span className="pill ok">Sin anticipo</span>}
+        {jefe && company && <label className="hint inline-check"><input type="checkbox" checked={!company.requiere_anticipo}
           onChange={(e) => run(supabase.from('companies').update({ requiere_anticipo: !e.target.checked }).eq('id', company.id))} /> Empresa de confianza (sin anticipo)</label>}
       </div>
       <details><summary>Ver detalle de la vacante</summary>
@@ -344,7 +348,9 @@ function Sugeridos({ v, d, company, testOf, filtroInterno, setFiltroInterno, sol
       <div className="actions">
         <button type="button" className="btn primary" disabled={!terna.length || terna.every((s) => s.enviado) || faltaAnticipo} onClick={enviar}>
           {terna.length && terna.every((s) => s.enviado) ? `Terna enviada (${terna.length})` : `Enviar terna a la empresa (${terna.length}/3)`}</button>
-        {faltaAnticipo && terna.length > 0 && <span className="hint">Para enviar la terna, primero registra el anticipo o marca a la empresa como de confianza.</span>}
+        {faltaAnticipo && terna.length > 0 && <span className="hint">{jefe
+          ? 'Para enviar la terna, primero registra el anticipo o marca a la empresa como de confianza.'
+          : 'Para enviar la terna falta el anticipo. Avísale al administrador.'}</span>}
       </div>
     </section>
   );
@@ -392,13 +398,16 @@ function TarifasCard({ t, run }: { t: Tarifas; run: Run }) {
         <F label="Anticipo (% del total)"><input type="number" min={0} max={100} value={x.anticipo_pct} onChange={(e) => set('anticipo_pct', e.target.value)} /></F>
         <F label="Días para pagar"><input type="number" min={0} value={x.plazo_dias} onChange={(e) => set('plazo_dias', e.target.value)} /></F>
       </div>
+      <div className="row">
+        <F label="Días de garantía de reemplazo"><input type="number" min={0} value={x.garantia_dias} onChange={(e) => set('garantia_dias', e.target.value)} /></F>
+      </div>
       <div className="actions"><button type="button" className="btn sm primary" disabled={!cambiado} onClick={() => run(supabase.from('tarifas').update(x).eq('id', 1), 'Tarifas guardadas.')}>Guardar tarifas</button></div>
       <p className="hint">Las empresas ven estas condiciones al pedir personal. El anticipo se descuenta del cobro final.</p>
     </section>
   );
 }
 
-function Detalle({ c, test, run, onClose, onEdit }: { c: Candidate; test?: Test; run: Run; onClose: () => void; onEdit: () => void }) {
+function Detalle({ c, test, run, jefe, onClose, onEdit }: { c: Candidate; test?: Test; run: Run; jefe: boolean; onClose: () => void; onEdit: () => void }) {
   const [notas, setNotas] = useState(c.notas ?? '');
   const [borrar, setBorrar] = useState(false);
   const r = test?.res;
@@ -440,7 +449,7 @@ function Detalle({ c, test, run, onClose, onEdit }: { c: Candidate; test?: Test;
       </label>
       <div className="actions">
         <button type="button" className="btn sm" disabled={notas === (c.notas ?? '')} onClick={() => run(supabase.from('candidates').update({ notas }).eq('id', c.id), 'Notas guardadas.')}>Guardar notas</button>
-        {!borrar ? <button type="button" className="btn sm danger" onClick={() => setBorrar(true)}>Borrar candidato</button> : (
+        {!jefe ? null : !borrar ? <button type="button" className="btn sm danger" onClick={() => setBorrar(true)}>Borrar candidato</button> : (
           <span className="confirm-inline">¿Borrar a {c.nombre} y todos sus datos?
             <button type="button" className="btn sm danger fill" onClick={async () => { if (await run(supabase.from('candidates').delete().eq('id', c.id), 'Candidato borrado.')) onClose(); }}>Sí, borrar</button>
             <button type="button" className="btn sm" onClick={() => setBorrar(false)}>Cancelar</button></span>
@@ -469,7 +478,8 @@ function Base({ cands, buscar, setBuscar, onCand }: { cands: Candidate[]; buscar
   );
 }
 
-function Seguimiento({ d, cand, run }: { d: Data; cand: (id: string) => Candidate | undefined; run: Run }) {
+function Seguimiento({ d, cand, run, jefe }: { d: Data; cand: (id: string) => Candidate | undefined; run: Run; jefe: boolean }) {
+  const g = d.tarifas.garantia_dias;
   const cell = (p: Placement, k: 'c30' | 'c60' | 'c90', dias: number) => {
     const val = p[k];
     const faltan = dias - daysSince(p.ingreso);
@@ -483,22 +493,66 @@ function Seguimiento({ d, cand, run }: { d: Data; cand: (id: string) => Candidat
   };
   return (
     <section className="card">
-      <div className="card-h"><h3>Seguimiento de colocados</h3><p>Garantía: reemplazo sin costo si sale antes de 60 días y la colocación está pagada</p></div>
+      <div className="card-h"><h3>Seguimiento de colocados</h3><p>Garantía: reemplazo sin costo si sale antes de {g} días y la colocación está pagada</p></div>
       {!d.places.length ? <p className="empty">Aún no hay colocaciones.</p> : (
         <div className="tbl"><table><thead><tr><th>Persona</th><th>Puesto</th><th>Ingreso</th><th>30 d</th><th>60 d</th><th>90 d</th><th></th></tr></thead><tbody>
           {d.places.map((p) => {
             const vv = d.vacs.find((x) => x.id === p.vacancy_id);
-            const salio = p.c30 === false || p.c60 === false;
+            // Salió dentro del plazo de garantía: en el corte de 30 días, o en el de 60 si la garantía llega a 60
+            const salio = p.c30 === false || p.c60 === false || p.c90 === false;
+            const enGarantia = (p.c30 === false && g >= 1) || (p.c60 === false && g > 30) || (p.c90 === false && g > 60);
             const pagado = d.cobros.some((c) => c.concepto === 'Colocación' && c.vacancy_id === p.vacancy_id && c.candidate_id === p.candidate_id && c.pagado);
+            const estado = !salio ? (p.c90 === true ? <span className="pill ok">Retenido</span> : null)
+              : !enGarantia ? <span className="pill info">Salió fuera de garantía</span>
+              : !jefe ? <span className="pill warn">Salió en garantía: revisar con el administrador</span>
+              : pagado ? <span className="pill bad">Aplica reemplazo</span> : <span className="pill warn">Sin garantía: pago pendiente</span>;
             return (
               <tr key={p.candidate_id + p.vacancy_id}><td>{cand(p.candidate_id)?.nombre ?? '—'}</td><td>{vv?.puesto}</td><td>{fmtDate(p.ingreso)}</td>
                 <td>{cell(p, 'c30', 30)}</td><td>{cell(p, 'c60', 60)}</td><td>{cell(p, 'c90', 90)}</td>
-                <td>{salio ? (pagado ? <span className="pill bad">Aplica reemplazo</span> : <span className="pill warn">Sin garantía: pago pendiente</span>)
-                  : p.c90 === true ? <span className="pill ok">Retenido</span> : null}</td></tr>
+                <td>{estado}</td></tr>
             );
           })}
         </tbody></table></div>
       )}
+    </section>
+  );
+}
+
+function Equipo({ staff, run }: { staff: Staff[]; run: Run }) {
+  const [email, setEmail] = useState('');
+  const [rol, setRol] = useState('Reclutador');
+  const invitar = async () => {
+    const e = email.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(e)) return toast('Escribe un correo válido.', true);
+    const ok = await run(supabase.from('staff_invites').insert({ email: e, rol: rol === 'Administrador' ? 'admin' : 'reclutador' }), 'Listo. Ya puede entrar con ese correo.');
+    if (ok) setEmail('');
+  };
+  const quitar = (s: Staff) => s.pendiente
+    ? run(supabase.from('staff_invites').delete().eq('email', s.email), 'Invitación cancelada.')
+    : run(supabase.from('admins').delete().eq('user_id', s.user_id!), 'Acceso retirado.');
+  return (
+    <section className="card">
+      <h3>Equipo</h3>
+      <p className="hint">El reclutador ve candidatos, vacantes, mensajes y entrevistas. No ve cobros ni tarifas, y no puede borrar.</p>
+      <div className="list">{staff.map((s) => (
+        <div className="item" key={s.email}>
+          <div className="item-h"><span className="mono">{s.email}</span>
+            <span className={'pill ' + (s.rol === 'admin' ? 'lea' : 'info')}>{s.rol === 'admin' ? 'Administrador' : 'Reclutador'}{s.pendiente ? ' · falta crear cuenta' : ''}</span></div>
+          <div className="actions">
+            {!s.pendiente && s.user_id && (
+              <Sel value={s.rol === 'admin' ? 'Administrador' : 'Reclutador'} options={['Administrador', 'Reclutador']}
+                onChange={(r) => run(supabase.from('admins').update({ rol: r === 'Administrador' ? 'admin' : 'reclutador' }).eq('user_id', s.user_id!), 'Permisos actualizados.')} />
+            )}
+            <button type="button" className="btn sm danger" onClick={() => quitar(s)}>{s.pendiente ? 'Cancelar invitación' : 'Quitar acceso'}</button>
+          </div>
+        </div>
+      ))}</div>
+      <div className="row">
+        <F label="Correo de la persona"><input type="email" value={email} placeholder="nombre@correo.com" onChange={(e) => setEmail(e.target.value)} /></F>
+        <F label="Tipo"><Sel value={rol} onChange={setRol} options={['Reclutador', 'Administrador']} /></F>
+      </div>
+      <div className="actions"><button type="button" className="btn primary" onClick={invitar}>Agregar al equipo</button></div>
+      <p className="hint">La persona entra a la app con "Entrar con correo". Si todavía no tiene cuenta, elige "Crear cuenta de empresa" con ese mismo correo y entra directo al panel.</p>
     </section>
   );
 }
@@ -519,6 +573,10 @@ function Difusion({ onAsistido }: { onAsistido: () => void }) {
         <div className="qr" role="img" aria-label="Código QR para registrarse" dangerouslySetInnerHTML={{ __html: svg }} />
       </div>
       <p className="hint">Toma captura de este cartel para imprimirlo o compartirlo en WhatsApp y Facebook. El QR abre la app.</p>
+      <span className="lbl">Compartir con quien busca trabajo</span>
+      <ShareButtons texto="¿Buscas trabajo en SFR, Purísima o León? Regístrate gratis en Factor-Gente desde tu celular:" />
+      <span className="lbl">Compartir con empresas</span>
+      <ShareButtons texto="¿Necesitas personal? En Factor-Gente tú solo subes tu vacante; nosotros filtramos y te presentamos a los 2 o 3 candidatos que mejor encajan. Pagas solo si contratas:" />
       <div className="actions"><button type="button" className="btn primary" onClick={onAsistido}>Registrar a alguien (asistido)</button></div>
       <p className="hint">Para quien no puede llenar el formulario: tú capturas sus datos mientras platican.</p>
     </section>

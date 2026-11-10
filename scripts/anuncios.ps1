@@ -76,7 +76,7 @@ Guardar $b $g "2-como-funciona.png"
 $r = Nuevo $marino; $b = $r[0]; $g = $r[1]
 Txt $g "Pagas solo si contratas." 100 $true $blanco $M 170 900 260
 $g.FillRectangle((New-Object Drawing.SolidBrush $amarillo), [single]$M, 470, 120, 10)
-Txt $g "Y si la persona se va en los primeros 60 días, te enviamos un reemplazo sin costo." 50 $false $gris $M 530 880 260
+Txt $g "Y si la persona se va en los primeros 30 días, te enviamos un reemplazo sin costo." 50 $false $gris $M 530 880 260
 Marca $g $M 930 $blanco $amarillo $blanco $amarillo
 Guardar $b $g "3-sin-riesgo.png"
 

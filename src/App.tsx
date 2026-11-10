@@ -6,12 +6,14 @@ import { EmpresaHome } from './Empresa';
 import { Panel } from './Panel';
 import { F, Logo, toast } from './ui';
 
-type Role = 'candidato' | 'empresa' | 'admin';
+type Role = 'candidato' | 'empresa' | 'admin' | 'reclutador';
+type Vista = 'panel' | 'candidato' | 'empresa';
 
 export default function App() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [recovery, setRecovery] = useState(false);
   const [role, setRole] = useState<Role | null>(null);
+  const [vista, setVista] = useState<Vista>('panel');
 
   useEffect(() => {
     if (!isConfigured) return;
@@ -23,14 +25,18 @@ export default function App() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // Quién es: anónimo = candidato; con correo = administrador o empresa
+  // Quién es: anónimo = candidato; con correo = equipo (administrador o reclutador) o empresa
   useEffect(() => {
     setRole(null);
+    setVista('panel');
     const u = session?.user;
     if (!u) return;
     if (u.is_anonymous) { setRole('candidato'); return; }
-    supabase.from('admins').select('user_id').eq('user_id', u.id).maybeSingle()
-      .then(({ data }) => setRole(data ? 'admin' : 'empresa'));
+    supabase.from('admins').select('rol').eq('user_id', u.id).maybeSingle()
+      .then(({ data }) => {
+        const r = (data as { rol: string } | null)?.rol;
+        setRole(r === 'reclutador' ? 'reclutador' : r ? 'admin' : 'empresa');
+      });
   }, [session?.user?.id, session?.user?.is_anonymous]);
 
   if (!isConfigured) return <Shell><div className="intro"><h2>Falta conectar la base de datos</h2><p>Configura la URL y la llave pública de Supabase.</p></div></Shell>;
@@ -40,13 +46,27 @@ export default function App() {
   if (!role) return <Shell><p className="empty">Cargando…</p></Shell>;
 
   const salir = async () => { await supabase.auth.signOut(); };
-  const label = role === 'admin' ? 'Panel JC' : role === 'empresa' ? 'Empresa' : 'Candidato';
+  const equipo = role === 'admin' || role === 'reclutador';
+  const label = role === 'admin' ? 'Panel JC' : role === 'reclutador' ? 'Reclutador' : role === 'empresa' ? 'Empresa' : 'Candidato';
   return (
     <Shell right={<>
-      <span className="role-tag">{label}</span>
+      {equipo && (
+        <nav className="seg" aria-label="Ver pantalla">
+          {([['panel', label], ['candidato', 'Candidato'], ['empresa', 'Empresa']] as [Vista, string][]).map(([v, t]) => (
+            <button type="button" key={v} aria-pressed={vista === v} onClick={() => setVista(v)}>{t}</button>
+          ))}
+        </nav>
+      )}
+      {!equipo && <span className="role-tag">{label}</span>}
       {role !== 'candidato' && <button type="button" className="btn sm ghost" onClick={salir}>Salir</button>}
     </>}>
-      {role === 'admin' && <Panel />}
+      {equipo && vista !== 'panel' && (
+        <div className="banner"><span><b>Vista previa.</b> Así ve la app {vista === 'candidato' ? 'un candidato' : 'una empresa'}. Los datos son de ejemplo y nada de lo que hagas aquí se guarda.</span>
+          <button type="button" className="btn sm" onClick={() => setVista('panel')}>Volver a mi panel</button></div>
+      )}
+      {equipo && vista === 'panel' && <Panel rol={role} />}
+      {equipo && vista === 'candidato' && <CandidatoHome userId={session.user.id} preview onDeleted={() => setVista('panel')} />}
+      {equipo && vista === 'empresa' && <EmpresaHome userId={session.user.id} preview />}
       {role === 'empresa' && <EmpresaHome userId={session.user.id} />}
       {role === 'candidato' && <CandidatoHome userId={session.user.id} onDeleted={() => setSession(null)} />}
     </Shell>

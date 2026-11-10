@@ -37,6 +37,10 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 .bar-right{display:flex;gap:10px;align-items:center}
 .role-tag{font-size:.78rem;font-weight:600;color:var(--brand);background:var(--brand-accent);border-radius:999px;padding:3px 10px}
 .btn.ghost{background:transparent;color:var(--on-brand);border-color:var(--brand-2)}
+.seg{display:flex;background:var(--brand-2);border:1px solid var(--brand-2);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--on-brand-muted);font:600 .85rem var(--f-body);padding:6px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--on-brand);color:var(--brand)}
+.share-url{font-size:.85rem;color:var(--accent);overflow-wrap:anywhere}
 
 main{padding-block:24px 64px}
 .intro{display:flex;flex-direction:column;gap:6px;margin-bottom:20px;max-width:70ch}

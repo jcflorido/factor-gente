@@ -18,7 +18,8 @@ export interface Mensaje {
   id: string; candidate_id: string | null; company_id: string | null; vacancy_id: string | null;
   tipo: string; nombre: string; tel: string; texto: string; atendido: boolean; created_at: string;
 }
-export interface Tarifas { cuota_operativo: number; meses_admin: number; anticipo_pct: number; plazo_dias: number }
+export interface Tarifas { cuota_operativo: number; meses_admin: number; anticipo_pct: number; plazo_dias: number; garantia_dias: number }
+export interface Staff { user_id: string | null; email: string; rol: string; pendiente: boolean }
 export interface Cobro {
   id: string; company_id: string; vacancy_id: string | null; candidate_id: string | null;
   concepto: string; monto: number; vence: string | null; pagado: string | null; created_at: string;
