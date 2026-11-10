@@ -26,6 +26,14 @@
 ### 4. Medir de dónde llegan
 - Pregunta "¿Cómo nos conociste?" (Facebook, Google, recomendación, cartel, otro) al registrar empresa y candidato; resumen en el panel.
 
+### 5. Manual básico de onboarding para el candidato colocado
+- Ya se mencionó al TecNM Purísima ("estamos preparando un manual básico de integración").
+- Contenido sugerido: qué llevar el primer día, reglamento y horarios, a quién acudir, IMSS y nómina, consejos para los primeros 30 días (periodo de garantía).
+- Entregarlo al marcar "contratado" (PDF o pantalla en la app) y versión para la empresa.
+
+### 6. Aviso de privacidad en documento aparte
+- El TecNM pidió revisarlo: preparar PDF con el texto completo (hoy vive dentro del formulario del candidato).
+
 ## Antes de cobrar la primera colocación
 - Registro ante la STPS como agencia de colocación (trámite STPS-13-001).
 - Cláusula: los honorarios nunca se descuentan del salario del trabajador.
