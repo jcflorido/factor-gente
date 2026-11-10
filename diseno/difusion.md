@@ -33,6 +33,26 @@ Cómo funciona:
 
 ¿Tienes alguna vacante abierta ahorita? Con gusto te platico más.
 
+## 3b. Correo corto para RRHH de empresas (frío, no nos conocen)
+
+Asunto: Candidatos filtrados para sus vacantes en [municipio]
+
+Buen día, equipo de Recursos Humanos de [Empresa]:
+
+Soy Juan Carlos F. Florido, de Factor-Gente, un servicio de reclutamiento para empresas de San Francisco del Rincón, Purísima y León.
+
+Ustedes solo nos dicen qué puesto necesitan; nosotros filtramos a los candidatos (experiencia, sueldo, horario, distancia y una prueba breve de perfil) y les presentamos a los 2 o 3 que mejor encajan. También coordinamos las entrevistas.
+
+• Pagan solo si contratan.
+• Garantía de reemplazo de 30 días.
+• Pueden registrar su vacante en 5 minutos: https://factorgente.jcflorido.me
+
+¿Les interesa que platiquemos 10 minutos sobre sus vacantes actuales?
+
+Saludos cordiales,
+Juan Carlos F. Florido
+Factor-Gente · factorgente.jcflorido.me
+
 ## 4. Facebook: para empresas
 
 ### 4a. Versión completa (propuesta de valor)
