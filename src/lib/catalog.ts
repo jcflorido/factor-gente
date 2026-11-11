@@ -30,6 +30,7 @@ export const DISP = ['Inmediata', '15 días', '1 mes'];
 export const PREST = ['IMSS', 'Aguinaldo superior a ley', 'Vales de despensa', 'Bono de puntualidad', 'Caja de ahorro'];
 export const SERVICIOS = ['Legal', 'Fiscal', 'Contable', 'Organizacional'];
 export const ESTADOS = ['Disponible', 'En proceso', 'Colocado', 'Inactivo'];
+export const ORIGENES = ['Facebook o Instagram', 'Google', 'Me lo recomendaron', 'Cartel o código QR', 'Me llamaron o escribieron de Factor-Gente', 'Mi escuela (TecNM u otra)', 'Otro'];
 
 // Mini-IPIP (Donnellan et al., 2006), reactivos IPIP de dominio público. Traducción de trabajo al español.
 // La calificación se hace en el servidor (función submit_test).

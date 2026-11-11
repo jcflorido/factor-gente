@@ -7,7 +7,7 @@ Todo usa planes gratuitos. Se hace una sola vez.
 2. **Authentication → Sign In / Providers**:
    - Activar **Allow anonymous sign-ins** (los candidatos entran sin correo).
    - En **Email**, desactivar **Confirm email**.
-3. **SQL Editor → New query**: pegar y correr, en orden, cada archivo de `supabase/migrations/` (`0001_factor_gente.sql`, `0002_entrevista_cobros.sql`, `0003_mensajes.sql`, `0004_equipo_garantia.sql`) → **Run** → *Success. No rows returned*.
+3. **SQL Editor → New query**: pegar y correr, en orden, cada archivo de `supabase/migrations/` (`0001_factor_gente.sql`, `0002_entrevista_cobros.sql`, `0003_mensajes.sql`, `0004_equipo_garantia.sql`, `0005_origen_vacantes_publicas.sql`) → **Run** → *Success. No rows returned*.
 4. **Authentication → URL Configuration**: Site URL `https://factorgente.jcflorido.me`; en Redirect URLs agregar también `http://localhost:5173`.
 5. **Project Settings → API**: copiar Project URL y anon public key a `src/lib/supabase.ts` (o a `.env.local`).
 

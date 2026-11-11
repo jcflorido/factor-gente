@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AREAS, AREA_HINT, DISP, ESCO, HORARIO, ITEMS, MUNI, PAGO, SALIDA, SCALE, TIEMPO, TRANSP, money } from './lib/catalog';
+import { AREAS, AREA_HINT, DISP, ESCO, HORARIO, ITEMS, MUNI, ORIGENES, PAGO, SALIDA, SCALE, TIEMPO, TRANSP, money } from './lib/catalog';
 import { supabase } from './lib/supabase';
 import type { Candidate, PublicVacancy } from './lib/types';
 import { DEMO_CAND } from './lib/demo';
@@ -12,6 +12,7 @@ interface Draft {
   pmin: string; pmax: string; tipo_pref: string; horario: string; disp: string; transp: string; mov: string[];
   inclusion: boolean; ajuste: string;
   consent_aviso: boolean; consent_compartir: boolean; consent_pruebas: boolean; consent_servicios: boolean;
+  origen: string;
 }
 
 const s = (v: string | number | null | undefined) => (v == null ? '' : String(v));
@@ -28,6 +29,7 @@ function toDraft(c: Candidate | null): Draft {
     transp: c?.transp ?? 'No', mov: c?.mov ?? [MUNI[0]], inclusion: c?.inclusion ?? false, ajuste: s(c?.ajuste),
     consent_aviso: c?.consent_aviso ?? false, consent_compartir: c?.consent_compartir ?? false,
     consent_pruebas: c?.consent_pruebas ?? false, consent_servicios: c?.consent_servicios ?? false,
+    origen: s(c?.origen),
   };
 }
 
@@ -59,6 +61,7 @@ export function CandidateForm({ initial, mode, userId, onSaved, onCancel, previe
       pmin: n(d.pmin), pmax: n(d.pmax), tipo_pref: d.tipo_pref, horario: d.horario, disp: d.disp, transp: d.transp, mov: d.mov,
       inclusion: d.inclusion, ajuste: d.ajuste.trim() || null,
       consent_aviso: d.consent_aviso, consent_compartir: d.consent_compartir, consent_pruebas: d.consent_pruebas, consent_servicios: d.consent_servicios,
+      origen: d.origen || null,
     };
     setBusy(true);
     const q = initial
@@ -87,6 +90,14 @@ export function CandidateForm({ initial, mode, userId, onSaved, onCancel, previe
           <F label="Municipio donde vive"><Sel value={d.municipio} onChange={(v) => set('municipio', v)} options={MUNI} /></F>
           <F label="Colonia"><input type="text" value={d.colonia} onChange={(e) => set('colonia', e.target.value)} /></F>
           <F label="Último grado de estudios"><Sel value={d.esco} onChange={(v) => set('esco', v)} options={ESCO} /></F>
+        </div>
+        <div className="row">
+          <F label="¿Cómo te enteraste de Factor-Gente? (opcional)">
+            <select value={d.origen} onChange={(e) => set('origen', e.target.value)}>
+              <option value="">Elige una opción</option>
+              {ORIGENES.map((o) => <option key={o}>{o}</option>)}
+            </select>
+          </F>
         </div>
         <p className="hint">La INE o el CURP solo se piden si avanzas en un proceso de selección.</p>
       </fieldset>
@@ -190,6 +201,11 @@ export function CandidatoHome({ userId, onDeleted, preview }: { userId: string; 
 
   if (c === undefined) return <p className="empty">Cargando…</p>;
 
+  // Primero las vacantes de su área y de los municipios donde puede trabajar
+  const leQueda = (v: PublicVacancy) => !!c && v.area === c.area && c.mov.includes(v.zona);
+  const puntos = (v: PublicVacancy) => (c ? (v.area === c.area ? 2 : 0) + (c.mov.includes(v.zona) ? 1 : 0) : 0);
+  const vacsOrden = [...vacs].sort((a, b) => puntos(b) - puntos(a));
+
   const toggleInt = async (vid: string) => {
     if (!c) return;
     if (preview) return toast(PREVIEW_MSG);
@@ -217,9 +233,9 @@ export function CandidatoHome({ userId, onDeleted, preview }: { userId: string; 
           <section className="card">
             <div className="card-h"><h3>Vacantes disponibles</h3><p>{vacs.length} publicadas</p></div>
             <div className="list">
-              {vacs.map((v) => (
+              {vacsOrden.map((v) => (
                 <div className="item" key={v.id}>
-                  <div className="item-h"><strong>{v.puesto}</strong><span className="pill info">{v.area}</span></div>
+                  <div className="item-h"><strong>{v.puesto}</strong><span className="meta">{leQueda(v) && <span className="pill ok">Para ti</span>}<span className="pill info">{v.area}</span></span></div>
                   <div className="meta"><span>{v.zona}</span><span className="mono">{money(v.smin)}–{money(v.smax)}/mes</span><span>{v.tipo}</span><span>{v.horario}</span></div>
                   <div className="meta"><span>{[...v.prest, v.comedor ? 'Comedor' : '', v.transporte ? 'Transporte' : ''].filter(Boolean).join(' · ')}</span>{v.incluyente && <span className="pill lea">Vacante incluyente</span>}</div>
                   {c && <div className="actions"><button type="button" className={'btn sm' + (ints.includes(v.id) ? ' primary' : '')} onClick={() => toggleInt(v.id)}>{ints.includes(v.id) ? 'Te interesa ✓' : 'Me interesa'}</button></div>}

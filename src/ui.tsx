@@ -233,6 +233,7 @@ export function Aviso() {
       <p><b>Datos sensibles:</b> si nos dices que tienes una discapacidad, solo lo usamos para vacantes incluyentes y no se comparte sin tu permiso.</p>
       <p><b>Tus derechos:</b> puedes pedir ver, corregir, cancelar u oponerte al uso de tus datos (derechos ARCO), y borrar tu cuenta desde esta misma pantalla. La autoridad en la materia es la Secretaría Anticorrupción y Buen Gobierno, conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares vigente desde el 21 de marzo de 2025.</p>
       <p><b>Seguimiento:</b> cada 60 días te preguntaremos si sigues buscando trabajo.</p>
+      <p><a href="/aviso-de-privacidad.pdf" target="_blank" rel="noopener">Ver el aviso de privacidad completo (PDF)</a></p>
     </details>
   );
 }

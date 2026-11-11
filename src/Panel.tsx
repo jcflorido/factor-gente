@@ -177,6 +177,7 @@ export function Panel({ rol }: { rol: 'admin' | 'reclutador' }) {
             ))}{!d.vacs.length && <p className="empty">Aún no hay vacantes.</p>}</div>
           </section>
           <Difusion onAsistido={() => setForm({ mode: 'asistido', c: null })} />
+          <Origenes cands={d.cands} cos={d.cos} />
           {jefe && <TarifasCard t={d.tarifas} run={run} />}
           {jefe && <Equipo staff={d.staff} run={run} />}
           <RefCard refs={d.refs} />
@@ -514,6 +515,31 @@ function Seguimiento({ d, cand, run, jefe }: { d: Data; cand: (id: string) => Ca
           })}
         </tbody></table></div>
       )}
+    </section>
+  );
+}
+
+// ¿Cómo nos conocieron? Conteo por canal para candidatos y empresas
+function Origenes({ cands, cos }: { cands: Candidate[]; cos: Company[] }) {
+  const contar = (xs: { origen: string | null }[]) => {
+    const m = new Map<string, number>();
+    xs.forEach((x) => m.set(x.origen || 'Sin respuesta', (m.get(x.origen || 'Sin respuesta') ?? 0) + 1));
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  };
+  const tabla = (titulo: string, filas: [string, number][], total: number) => (
+    <div className="stack-sm">
+      <span className="lbl">{titulo} ({total})</span>
+      {filas.length ? filas.map(([o, n]) => (
+        <div className="bar-r" key={o}><span>{o}</span><i style={{ ['--w' as string]: `${total ? (n / total) * 100 : 0}%` }} /><span className="mono">{n}</span></div>
+      )) : <p className="empty">Aún no hay registros.</p>}
+    </div>
+  );
+  return (
+    <section className="card">
+      <h3>¿Cómo nos conocieron?</h3>
+      {tabla('Candidatos', contar(cands), cands.length)}
+      {tabla('Empresas', contar(cos), cos.length)}
+      <p className="hint">Sirve para saber qué funciona mejor: anuncios, llamadas, correos, carteles o recomendaciones.</p>
     </section>
   );
 }

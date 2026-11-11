@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AREAS, ESCO, HORARIO, MUNI, PAGO, PREST, TARIFAS_BASE, anticipoDe, fmtCita, fmtDate, money, perfilTexto, todayIso } from './lib/catalog';
+import { AREAS, ESCO, HORARIO, MUNI, ORIGENES, PAGO, PREST, TARIFAS_BASE, anticipoDe, fmtCita, fmtDate, money, perfilTexto, todayIso } from './lib/catalog';
 import { supabase } from './lib/supabase';
 import type { Cobro, Company, RefSalary, Tarifas, Terna, Vacancy } from './lib/types';
 import { DEMO_CO, DEMO_COBROS, DEMO_TERNAS, DEMO_VAC } from './lib/demo';
@@ -122,13 +122,13 @@ export function VacPill({ e }: { e: string }) {
 }
 
 function CompanyForm({ onSaved }: { onSaved: () => void }) {
-  const [d, setD] = useState({ nombre: '', giro: '', contacto: '', tel: '' });
+  const [d, setD] = useState({ nombre: '', giro: '', contacto: '', tel: '', origen: '' });
   const [busy, setBusy] = useState(false);
   const guardar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!d.nombre.trim() || !d.tel.trim()) return toast('Escribe el nombre de la empresa y un teléfono.', true);
     setBusy(true);
-    const { error } = await supabase.from('companies').insert({ nombre: d.nombre.trim(), giro: d.giro.trim() || null, contacto: d.contacto.trim() || null, tel: d.tel.trim() });
+    const { error } = await supabase.from('companies').insert({ nombre: d.nombre.trim(), giro: d.giro.trim() || null, contacto: d.contacto.trim() || null, tel: d.tel.trim(), origen: d.origen || null });
     setBusy(false);
     if (error) return toast('No se pudo guardar: ' + error.message, true);
     onSaved();
@@ -144,6 +144,14 @@ function CompanyForm({ onSaved }: { onSaved: () => void }) {
         <div className="row">
           <F label="Persona de contacto"><input type="text" value={d.contacto} onChange={(e) => setD({ ...d, contacto: e.target.value })} /></F>
           <F label="WhatsApp o teléfono"><input type="tel" value={d.tel} onChange={(e) => setD({ ...d, tel: e.target.value })} /></F>
+        </div>
+        <div className="row">
+          <F label="¿Cómo se enteró de Factor-Gente? (opcional)">
+            <select value={d.origen} onChange={(e) => setD({ ...d, origen: e.target.value })}>
+              <option value="">Elija una opción</option>
+              {ORIGENES.map((o) => <option key={o}>{o}</option>)}
+            </select>
+          </F>
         </div>
         <div className="actions"><button type="submit" className="btn primary" disabled={busy}>Continuar</button></div>
       </form>

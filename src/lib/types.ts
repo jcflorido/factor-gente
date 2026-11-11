@@ -10,10 +10,10 @@ export interface Candidate {
   pmin: number | null; pmax: number | null; tipo_pref: string | null; horario: string | null; disp: string | null;
   transp: string | null; mov: string[]; inclusion: boolean; ajuste: string | null;
   consent_aviso: boolean; consent_compartir: boolean; consent_pruebas: boolean; consent_servicios: boolean;
-  estado: string; notas: string | null; created_at: string;
+  estado: string; notas: string | null; origen: string | null; created_at: string;
 }
 
-export interface Company { id: string; user_id: string; nombre: string; giro: string | null; contacto: string | null; tel: string | null; requiere_anticipo: boolean; created_at: string }
+export interface Company { id: string; user_id: string; nombre: string; giro: string | null; contacto: string | null; tel: string | null; requiere_anticipo: boolean; origen: string | null; created_at: string }
 export interface Mensaje {
   id: string; candidate_id: string | null; company_id: string | null; vacancy_id: string | null;
   tipo: string; nombre: string; tel: string; texto: string; atendido: boolean; created_at: string;

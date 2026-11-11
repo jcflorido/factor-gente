@@ -4,6 +4,8 @@ import { isConfigured, supabase } from './lib/supabase';
 import { CandidatoHome } from './Candidato';
 import { EmpresaHome } from './Empresa';
 import { Panel } from './Panel';
+import { money } from './lib/catalog';
+import type { PublicVacancy } from './lib/types';
 import { F, Logo, toast } from './ui';
 
 type Role = 'candidato' | 'empresa' | 'admin' | 'reclutador';
@@ -88,6 +90,8 @@ function Shell({ children, right }: { children: React.ReactNode; right?: React.R
 function Landing() {
   const [modo, setModo] = useState<'inicio' | 'correo'>('inicio');
   const [busy, setBusy] = useState(false);
+  const [vacs, setVacs] = useState<PublicVacancy[]>([]);
+  useEffect(() => { supabase.rpc('public_vacancies').then(({ data }) => setVacs((data as PublicVacancy[]) ?? [])); }, []);
   const empezar = async () => {
     setBusy(true);
     const { error } = await supabase.auth.signInAnonymously();
@@ -109,6 +113,26 @@ function Landing() {
           <b>Soy empresa</b><span>Solicita personal y recibe una terna de candidatos filtrados. Solo pagas si contratas.</span></button>
       </div>
       <p className="hint center">¿Ya tienes cuenta de empresa o eres administrador? <button type="button" className="link" onClick={() => setModo('correo')}>Entrar con correo</button></p>
+
+      {vacs.length > 0 && (
+        <section className="card">
+          <div className="card-h"><h3>Vacantes disponibles</h3><p>{vacs.length} {vacs.length === 1 ? 'publicada' : 'publicadas'}</p></div>
+          <div className="list">
+            {vacs.slice(0, 8).map((v) => (
+              <div className="item" key={v.id}>
+                <div className="item-h"><strong>{v.puesto}</strong><span className="pill info">{v.area}</span></div>
+                <div className="meta"><span>{v.zona}</span><span className="mono">{money(v.smin)}–{money(v.smax)}/mes</span><span>{v.tipo}</span><span>{v.horario}</span></div>
+                {v.incluyente && <div className="meta"><span className="pill lea">Vacante incluyente</span></div>}
+              </div>
+            ))}
+          </div>
+          {vacs.length > 8 && <p className="hint">Y {vacs.length - 8} más dentro de la app.</p>}
+          <div className="actions"><button type="button" className="btn primary" disabled={busy} onClick={empezar}>Regístrate gratis para postularte</button></div>
+          <p className="hint">El nombre de la empresa se da a conocer cuando avanzas en el proceso.</p>
+        </section>
+      )}
+
+      <p className="hint center"><a href="/aviso-de-privacidad.pdf" target="_blank" rel="noopener">Aviso de privacidad</a></p>
     </div>
   );
 }

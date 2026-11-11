@@ -14,12 +14,12 @@ export const DEMO_CAND: Candidate = {
   pmin: 10500, pmax: 12000, tipo_pref: 'Destajo', horario: 'Matutino', disp: 'Inmediata', transp: 'No',
   mov: ['San Francisco del Rincón', 'Purísima del Rincón'], inclusion: false, ajuste: null,
   consent_aviso: true, consent_compartir: true, consent_pruebas: true, consent_servicios: false,
-  estado: 'Disponible', notas: null, created_at: hoy,
+  estado: 'Disponible', notas: null, origen: 'Facebook o Instagram', created_at: hoy,
 };
 
 export const DEMO_CO: Company = {
   id: 'demo-co', user_id: 'demo', nombre: 'Calzado de Ejemplo', giro: 'Fabricante de calzado de dama',
-  contacto: 'Lic. Gabriela Ruiz', tel: '476 000 0100', requiere_anticipo: true, created_at: hoy,
+  contacto: 'Lic. Gabriela Ruiz', tel: '476 000 0100', requiere_anticipo: true, origen: 'Me llamaron o escribieron de Factor-Gente', created_at: hoy,
 };
 
 export const DEMO_VAC: Vacancy = {
