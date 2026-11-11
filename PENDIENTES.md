@@ -26,11 +26,9 @@
 ### 4. Medir de dónde llegan
 - Pregunta "¿Cómo nos conociste?" (Facebook, Google, recomendación, cartel, otro) al registrar empresa y candidato; resumen en el panel.
 
-### 5. Manual básico de onboarding para el candidato colocado (URGENTE: antes de la primera colocación)
-- Es REQUISITO de la garantía de reemplazo ("la empresa aplicó el manual de integración que entrega Factor-Gente"): sin manual, la garantía no se puede exigir.
-- Ya se mencionó al TecNM Purísima ("estamos preparando un manual básico de integración").
-- Contenido sugerido: qué llevar el primer día, reglamento y horarios, a quién acudir, IMSS y nómina, consejos para los primeros 30 días (periodo de garantía).
-- Entregarlo al marcar "contratado" (PDF o pantalla en la app) y versión para la empresa.
+### 5. Manual de onboarding: HECHO (borrador listo, 2026-11-11)
+- `diseno/onboarding/Factor-Gente-manual-integracion-empresa.pdf` (3 págs., con Constancia de integración firmable) y `Factor-Gente-guia-primer-mes.pdf` (1 pág. para el colaborador). Fuente HTML en la misma carpeta.
+- Falta: que la app los entregue al marcar "contratado" (enlaces de descarga en "Mis solicitudes" de la empresa y aviso al candidato), y alinear el requisito de la garantía en la app con "envió la Constancia de integración".
 
 ### 6. Aviso de privacidad en documento aparte
 - El TecNM pidió revisarlo: preparar PDF con el texto completo (hoy vive dentro del formulario del candidato).
