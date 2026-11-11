@@ -26,7 +26,8 @@
 ### 4. Medir de dónde llegan
 - Pregunta "¿Cómo nos conociste?" (Facebook, Google, recomendación, cartel, otro) al registrar empresa y candidato; resumen en el panel.
 
-### 5. Manual básico de onboarding para el candidato colocado
+### 5. Manual básico de onboarding para el candidato colocado (URGENTE: antes de la primera colocación)
+- Es REQUISITO de la garantía de reemplazo ("la empresa aplicó el manual de integración que entrega Factor-Gente"): sin manual, la garantía no se puede exigir.
 - Ya se mencionó al TecNM Purísima ("estamos preparando un manual básico de integración").
 - Contenido sugerido: qué llevar el primer día, reglamento y horarios, a quién acudir, IMSS y nómina, consejos para los primeros 30 días (periodo de garantía).
 - Entregarlo al marcar "contratado" (PDF o pantalla en la app) y versión para la empresa.
@@ -37,7 +38,7 @@
 ## Antes de cobrar la primera colocación
 - Registro ante la STPS como agencia de colocación (trámite STPS-13-001).
 - Cláusula: los honorarios nunca se descuentan del salario del trabajador.
-- Revisión de un abogado del aviso de privacidad y de las condiciones del servicio.
+- Revisión de un abogado del aviso de privacidad y de las condiciones del servicio (incluye los requisitos de la garantía; se decidió NO pedir alta en IMSS como requisito).
 
 ## Otros
 - JC define sus tarifas reales en el panel (hoy: operativo $2,500, administrativo 1 mes, anticipo 30%, 7 días).

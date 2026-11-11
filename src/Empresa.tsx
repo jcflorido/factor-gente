@@ -246,9 +246,21 @@ function VacancyForm({ company, tarifas, onSaved, preview }: { company: Company;
           {company.requiere_anticipo && <li>Anticipo del {tarifas.anticipo_pct}% para iniciar la búsqueda; se descuenta del cobro final.</li>}
           <li>Factor-Gente coordina las entrevistas con los candidatos.</li>
           <li>El resto se paga dentro de los {tarifas.plazo_dias} días siguientes a que la persona ingresa a trabajar.</li>
-          <li>Garantía: si la persona sale en los primeros {tarifas.garantia_dias} días, enviamos reemplazo sin costo, siempre que la colocación esté pagada.</li>
+          <li>Garantía: si la persona sale en los primeros {tarifas.garantia_dias} días, enviamos un reemplazo sin costo, sujeto a los requisitos de abajo.</li>
           <li>Si la empresa contrata a un candidato presentado por Factor-Gente en los 12 meses siguientes, se cobra la colocación.</li>
-          <li>La empresa contrata directamente; Factor-Gente solo recluta y filtra.</li></ul></div>
+          <li>La empresa contrata directamente; Factor-Gente solo recluta y filtra.</li></ul>
+          <details open><summary>Requisitos de la garantía de reemplazo</summary>
+            <ul>
+              <li>La persona desempeña el puesto para el que fue contratada: mismas funciones, horario y lugar de trabajo.</li>
+              <li>Se respetan el sueldo, las prestaciones y las condiciones publicadas en la vacante.</li>
+              <li>La empresa aplicó el manual de integración (onboarding) que entrega Factor-Gente.</li>
+              <li>El anticipo y el saldo están pagados dentro del plazo.</li>
+              <li>La persona renunció o fue dada de baja por bajo desempeño o mala conducta. No aplica por recorte de personal, cierre, cambios de turno o de condiciones, ni por despido sin causa.</li>
+              <li>La empresa avisa a Factor-Gente dentro de los 5 días hábiles siguientes a la salida.</li>
+              <li>Un solo reemplazo por colocación, para el mismo puesto y sin devolución de dinero.</li>
+              <li>La vacante no cambió de perfil ni de sueldo; si cambia, se trata como una búsqueda nueva.</li>
+            </ul>
+          </details></div>
         <div className="checks"><Check checked={d.acepta} onChange={(v) => set('acepta', v)}>Acepto las condiciones del servicio.</Check></div>
       </fieldset>
       {err && <p className="toast err" role="alert">{err}</p>}
