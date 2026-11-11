@@ -18,20 +18,20 @@
 - En iPhone requiere instalar la app en la pantalla de inicio.
 - WhatsApp queda como respaldo.
 
-### 3. Vacantes más visibles para candidatos
-- Mostrar las vacantes publicadas en la página de inicio, sin registrarse, con botón "Regístrate para postularte".
-- Ordenar primero las vacantes del área y municipio(s) del candidato.
-- Avisar al candidato cuando salga una vacante que le queda (usa las notificaciones del punto 2).
+### 3. Vacantes más visibles: HECHO (2026-11-11), salvo el aviso de vacante nueva
+- Falta: avisar al candidato cuando salga una vacante que le queda (usa las notificaciones del punto 2).
 
-### 4. Medir de dónde llegan
-- Pregunta "¿Cómo nos conociste?" (Facebook, Google, recomendación, cartel, otro) al registrar empresa y candidato; resumen en el panel.
+### 4. "¿Cómo nos conociste?": HECHO (2026-11-11, migración 0005)
+
+### 4b. Recordatorio cada 60 días
+- El aviso de privacidad dice "cada 60 días le preguntaremos si sigue buscando empleo": hoy se hace a mano. Automatizarlo (lista en el panel de perfiles sin actualizar en 60 días, o aviso push con el punto 2).
 
 ### 5. Manual de onboarding: HECHO (borrador listo, 2026-11-11)
 - `diseno/onboarding/Factor-Gente-manual-integracion-empresa.pdf` (3 págs., con Constancia de integración firmable) y `Factor-Gente-guia-primer-mes.pdf` (1 pág. para el colaborador). Fuente HTML en la misma carpeta.
 - Falta: que la app los entregue al marcar "contratado" (enlaces de descarga en "Mis solicitudes" de la empresa y aviso al candidato), y alinear el requisito de la garantía en la app con "envió la Constancia de integración".
 
-### 6. Aviso de privacidad en documento aparte
-- El TecNM pidió revisarlo: preparar PDF con el texto completo (hoy vive dentro del formulario del candidato).
+### 6. Aviso de privacidad en PDF: HECHO (factorgente.jcflorido.me/aviso-de-privacidad.pdf; fuente en diseno/aviso/)
+- Falta el domicilio completo del responsable (hoy solo "San Francisco del Rincón, Gto."): lo da JC o su abogado.
 
 ## Antes de cobrar la primera colocación
 - Cláusula: los honorarios nunca se descuentan del salario del trabajador.
