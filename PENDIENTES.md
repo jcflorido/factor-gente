@@ -34,11 +34,10 @@
 - El TecNM pidió revisarlo: preparar PDF con el texto completo (hoy vive dentro del formulario del candidato).
 
 ## Antes de cobrar la primera colocación
-- Registro ante la STPS como agencia de colocación (trámite STPS-13-001).
 - Cláusula: los honorarios nunca se descuentan del salario del trabajador.
 - Revisión de un abogado del aviso de privacidad y de las condiciones del servicio (incluye los requisitos de la garantía; se decidió NO pedir alta en IMSS como requisito).
+- (Registro STPS: pospuesto por decisión de JC, 2026-11-11.)
 
 ## Otros
-- JC captura en Panel → Tarifas la tarifa de lanzamiento (válida al 31/12/2026): operativo 1000, administrativo/supervisión 0.5 meses, anticipo 30%, 7 días para pagar, garantía 30 días. Después de diciembre, definir la tarifa normal.
-- Botón "Escríbenos por WhatsApp" en la app: JC ya usa el 477 672 6720 en cartas y correos; confirmar si también quiere mostrarlo en la app.
+- Después de diciembre, definir la tarifa normal (la de lanzamiento ya está capturada en el panel).
 - Versión en español validada del Mini-IPIP; pedir permiso a los autores de ICAR si se quiere prueba de razonamiento.
