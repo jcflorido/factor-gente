@@ -114,6 +114,9 @@ export function EmpresaHome({ userId, preview }: { userId: string; preview?: boo
   );
 }
 
+// 1 → "un mes", 0.5 → "dos semanas", 2 → "2 meses"
+const periodo = (m: number) => m === 1 ? 'un mes' : m === 0.5 ? 'dos semanas' : m < 1 ? `${Math.round(m * 4.33)} semanas` : `${m} meses`;
+
 export function VacPill({ e }: { e: string }) {
   return <span className={'pill ' + (e === 'Abierta' ? 'ok' : e === 'Terna enviada' ? 'info' : e === 'Cancelada' ? 'bad' : 'lea')}>{e}</span>;
 }
@@ -239,7 +242,7 @@ function VacancyForm({ company, tarifas, onSaved, preview }: { company: Company;
           <label><input type="radio" name="pub" checked={d.pub === 'privada'} onChange={() => set('pub', 'privada')} /> Privada: solo Factor-Gente la ve</label>
         </div>
         <div className="terms"><b>Condiciones del servicio</b><ul>
-          <li>Operativo: {money(tarifas.cuota_operativo)} por persona colocada. Administrativo y supervisión: {tarifas.meses_admin === 1 ? 'un mes' : `${tarifas.meses_admin} meses`} del sueldo ofrecido.</li>
+          <li>Operativo: {money(tarifas.cuota_operativo)} + IVA por persona colocada. Administrativo y supervisión: {periodo(tarifas.meses_admin)} del sueldo ofrecido + IVA.</li>
           {company.requiere_anticipo && <li>Anticipo del {tarifas.anticipo_pct}% para iniciar la búsqueda; se descuenta del cobro final.</li>}
           <li>Factor-Gente coordina las entrevistas con los candidatos.</li>
           <li>El resto se paga dentro de los {tarifas.plazo_dias} días siguientes a que la persona ingresa a trabajar.</li>

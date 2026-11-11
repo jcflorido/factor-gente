@@ -53,6 +53,29 @@ Saludos cordiales,
 Juan Carlos F. Florido
 Factor-Gente · factorgente.jcflorido.me
 
+## 3c. Correo después de la llamada (con la carta PDF adjunta)
+
+Asunto: Factor·Gente: información que platicamos por teléfono
+
+Estimado(a) [Nombre]:
+
+Gracias por atender mi llamada. Como le comenté, le comparto la información de Factor·Gente, un servicio de reclutamiento para empresas de San Francisco del Rincón, Purísima y León.
+
+Usted solo nos dice qué puesto necesita; nosotros filtramos a los candidatos (experiencia, sueldo, horario, distancia y una prueba breve de perfil) y le presentamos a los 2 o 3 que mejor encajan. También coordinamos las entrevistas.
+
+- Registrarse y publicar vacantes no tiene costo: https://factorgente.jcflorido.me
+- Tarifa de lanzamiento, hasta el 31 de diciembre de 2026: $1,000 + IVA por operativo contratado, y 2 semanas de sueldo + IVA por administrativo o supervisor.
+- Al iniciar la búsqueda se cubre un anticipo del 30%, que se descuenta del total; el resto se paga cuando la persona ingresa a trabajar.
+- Garantía de reemplazo de 30 días.
+
+[Si mencionó una vacante: "Con gusto empezamos con la vacante de ___ que me comentó."]
+
+Adjunto la carta de presentación con todos los detalles. Quedo a sus órdenes en este correo o en el 477 672 6720 (teléfono y WhatsApp).
+
+Saludos cordiales,
+Juan Carlos F. Florido
+Factor·Gente · factorgente.jcflorido.me
+
 ## 4. Facebook: para empresas
 
 ### 4a. Versión completa (propuesta de valor)
