@@ -41,6 +41,6 @@
 - Revisión de un abogado del aviso de privacidad y de las condiciones del servicio (incluye los requisitos de la garantía; se decidió NO pedir alta en IMSS como requisito).
 
 ## Otros
-- JC define sus tarifas reales en el panel (hoy: operativo $2,500, administrativo 1 mes, anticipo 30%, 7 días).
-- Botón "Escríbenos por WhatsApp" cuando JC tenga un número de WhatsApp Business.
+- JC captura en Panel → Tarifas la tarifa de lanzamiento (válida al 31/12/2026): operativo 1000, administrativo/supervisión 0.5 meses, anticipo 30%, 7 días para pagar, garantía 30 días. Después de diciembre, definir la tarifa normal.
+- Botón "Escríbenos por WhatsApp" en la app: JC ya usa el 477 672 6720 en cartas y correos; confirmar si también quiere mostrarlo en la app.
 - Versión en español validada del Mini-IPIP; pedir permiso a los autores de ICAR si se quiere prueba de razonamiento.
