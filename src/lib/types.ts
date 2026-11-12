@@ -52,3 +52,21 @@ export interface Terna {
   mov: string[]; habilidades: string[]; carta: string | null; res: Res | null;
   cita: string | null; lugar: string | null;
 }
+
+export interface ChatMsg {
+  id: string; candidate_id: string | null; company_id: string | null; de_equipo: boolean; autor: string | null;
+  texto: string; leido: boolean; created_at: string;
+}
+export interface Hilo {
+  candidate_id: string | null; company_id: string | null; nombre: string; tipo: string;
+  ultimo: string; ultimo_at: string; ultimo_de_equipo: boolean; sin_leer: number;
+}
+export interface Documento {
+  id: string; candidate_id: string; tipo: string; nombre: string; cantidad: number | null; estado: string;
+  path: string | null; archivo: string | null; nota: string | null;
+  solicitado_at: string; recibido_at: string | null; revisado_at: string | null; recordado_at: string | null;
+}
+export interface Referencia {
+  id: string; candidate_id: string; nombre: string; empresa: string | null; puesto: string | null; telefono: string;
+  relacion: string | null; verificada: boolean; recontrataria: string | null; resultado: string | null; verificado_at: string | null;
+}

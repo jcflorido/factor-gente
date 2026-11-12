@@ -5,3 +5,6 @@ dev-dist
 .env.local
 *.log
 contactos/
+
+# Secretos de Supabase (llaves VAPID y del despachador)
+supabase/.secrets.local

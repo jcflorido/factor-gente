@@ -3,7 +3,8 @@ import { AREAS, ESCO, HORARIO, MUNI, ORIGENES, PAGO, PREST, TARIFAS_BASE, antici
 import { supabase } from './lib/supabase';
 import type { Cobro, Company, RefSalary, Tarifas, Terna, Vacancy } from './lib/types';
 import { DEMO_CO, DEMO_COBROS, DEMO_TERNAS, DEMO_VAC } from './lib/demo';
-import { Check, Checks, ContactCard, F, PREVIEW_MSG, Radios, RefCard, Sel, ServicesCard, Skills, toast } from './ui';
+import { Check, Checks, F, PREVIEW_MSG, Radios, RefCard, Sel, ServicesCard, Skills, toast } from './ui';
+import { ChatCard } from './chat';
 
 export function EmpresaHome({ userId, preview }: { userId: string; preview?: boolean }) {
   const [co, setCo] = useState<Company | null | undefined>(undefined);
@@ -32,6 +33,14 @@ export function EmpresaHome({ userId, preview }: { userId: string; preview?: boo
   }, [userId, preview]);
   useEffect(() => { load(); }, [load]);
 
+  // Al abrir desde una notificación, ir directo al chat
+  useEffect(() => {
+    if (co && new URLSearchParams(window.location.search).has('chat')) {
+      setTimeout(() => document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' }), 300);
+      window.history.replaceState(null, '', '/');
+    }
+  }, [co]);
+
   if (co === undefined) return <p className="empty">Cargando…</p>;
   if (!co) return <CompanyForm onSaved={load} />;
 
@@ -46,7 +55,7 @@ export function EmpresaHome({ userId, preview }: { userId: string; preview?: boo
   return (
     <>
       <div className="intro"><span className="eyebrow">Empresa · {co.nombre}</span><h2>Solicitar personal</h2>
-        <p>Describe el puesto. Factor-Gente filtra su base de candidatos y le envía una terna que se apega al perfil. Solo paga si contrata.</p></div>
+        <p>Describe el puesto. Factor-Gente filtra su base de candidatos y le envía una terna que se apega al perfil. Registrarse y publicar vacantes no tiene costo.</p></div>
       <div className="grid">
         <VacancyForm company={co} tarifas={tarifas} onSaved={load} preview={preview} />
         <div className="stack">
@@ -92,7 +101,7 @@ export function EmpresaHome({ userId, preview }: { userId: string; preview?: boo
               {!vacs.length && <p className="empty">Aún no hay solicitudes.</p>}
             </div>
           </section>
-          <ContactCard tipo="Empresa" nombre={co.nombre} tel={co.tel ?? ''} companyId={co.id} vacantes={vacs.map((v) => ({ id: v.id, puesto: v.puesto }))} preview={preview} />
+          <ChatCard companyId={co.id} userId={userId} preview={preview} />
           {cobros.length > 0 && (
             <section className="card">
               <div className="card-h"><h3>Mis pagos</h3></div>

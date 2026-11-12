@@ -66,7 +66,7 @@ export default function App() {
         <div className="banner"><span><b>Vista previa.</b> Así ve la app {vista === 'candidato' ? 'un candidato' : 'una empresa'}. Los datos son de ejemplo y nada de lo que hagas aquí se guarda.</span>
           <button type="button" className="btn sm" onClick={() => setVista('panel')}>Volver a mi panel</button></div>
       )}
-      {equipo && vista === 'panel' && <Panel rol={role} />}
+      {equipo && vista === 'panel' && <Panel rol={role} userId={session.user.id} />}
       {equipo && vista === 'candidato' && <CandidatoHome userId={session.user.id} preview onDeleted={() => setVista('panel')} />}
       {equipo && vista === 'empresa' && <EmpresaHome userId={session.user.id} preview />}
       {role === 'empresa' && <EmpresaHome userId={session.user.id} />}
@@ -110,7 +110,7 @@ function Landing() {
         <button type="button" className="choice" disabled={busy} onClick={empezar}>
           <b>Busco trabajo</b><span>Regístrate gratis desde tu celular en unos 5 minutos. No necesitas correo.</span></button>
         <button type="button" className="choice alt" onClick={() => setModo('correo')}>
-          <b>Soy empresa</b><span>Solicita personal y recibe una terna de candidatos filtrados. Solo pagas si contratas.</span></button>
+          <b>Soy empresa</b><span>Solicita personal y recibe una terna de candidatos filtrados. Registrarte y publicar vacantes no tiene costo.</span></button>
       </div>
       <p className="hint center">¿Ya tienes cuenta de empresa o eres administrador? <button type="button" className="link" onClick={() => setModo('correo')}>Entrar con correo</button></p>
 

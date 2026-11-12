@@ -3,7 +3,9 @@ import { AREAS, AREA_HINT, DISP, ESCO, HORARIO, ITEMS, MUNI, ORIGENES, PAGO, SAL
 import { supabase } from './lib/supabase';
 import type { Candidate, PublicVacancy } from './lib/types';
 import { DEMO_CAND } from './lib/demo';
-import { Aviso, Check, Checks, ContactCard, F, PREVIEW_MSG, Radios, Sel, ServicesCard, ShareCard, Skills, toast } from './ui';
+import { Aviso, Check, Checks, F, PREVIEW_MSG, Radios, Sel, ServicesCard, ShareCard, Skills, toast } from './ui';
+import { ChatCard } from './chat';
+import { MisDocumentos, borrarArchivos } from './docs';
 
 interface Draft {
   nombre: string; edad: string; sexo: string; tel: string; correo: string; municipio: string; colonia: string; esco: string;
@@ -199,6 +201,14 @@ export function CandidatoHome({ userId, onDeleted, preview }: { userId: string; 
   }, [userId, preview]);
   useEffect(() => { load(); }, [load]);
 
+  // Al abrir desde una notificación, ir directo al chat
+  useEffect(() => {
+    if (c && new URLSearchParams(window.location.search).has('chat')) {
+      setTimeout(() => document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' }), 300);
+      window.history.replaceState(null, '', '/');
+    }
+  }, [c]);
+
   if (c === undefined) return <p className="empty">Cargando…</p>;
 
   // Primero las vacantes de su área y de los municipios donde puede trabajar
@@ -223,13 +233,15 @@ export function CandidatoHome({ userId, onDeleted, preview }: { userId: string; 
     <>
       <div className="intro"><span className="eyebrow">Bolsa de trabajo con filtro</span>
         <h2>{c ? `Hola, ${c.nombre.split(' ')[0]}` : 'Crea tu perfil de trabajo'}</h2>
-        <p>{c ? 'Mantén tu perfil al día. Factor-Gente te busca la vacante que te queda y te contacta por WhatsApp.' : 'Llénalo desde tu celular en unos 5 minutos. Para ti el servicio es gratis.'}</p>
+        <p>{c ? 'Mantén tu perfil al día. Factor-Gente te busca la vacante que te queda y te escribe aquí o por WhatsApp.' : 'Llénalo desde tu celular en unos 5 minutos. Para ti el servicio es gratis.'}</p>
         <p className="hint">Este celular recuerda tu perfil. Si cambias de celular, escríbele a Factor-Gente para recuperar tus datos.</p>
       </div>
       <div className="grid">
         <CandidateForm key={c?.id ?? 'nuevo'} initial={c} mode="self" userId={userId} preview={preview} onSaved={(x) => { setC(x); load(); }} />
         <div className="stack">
+          {c && <MisDocumentos candidateId={c.id} preview={preview} />}
           {c && <TestCard estado={test} permiso={c.consent_pruebas} preview={preview} onDone={() => setTest('completada')} />}
+          {c && <ChatCard candidateId={c.id} userId={userId} preview={preview} />}
           <section className="card">
             <div className="card-h"><h3>Vacantes disponibles</h3><p>{vacs.length} publicadas</p></div>
             <div className="list">
@@ -245,11 +257,10 @@ export function CandidatoHome({ userId, onDeleted, preview }: { userId: string; 
             </div>
             <p className="hint">El nombre de la empresa se da a conocer cuando avanzas en el proceso.</p>
           </section>
-          {c && <ContactCard tipo="Candidato" nombre={c.nombre} tel={c.tel} candidateId={c.id} preview={preview} />}
           <ShareCard titulo="¿Conoces a alguien que busca trabajo?" hint="Compártele Factor-Gente por WhatsApp o Facebook, o copia el enlace."
             texto="¿Buscas trabajo en SFR, Purísima o León? Regístrate gratis en Factor-Gente desde tu celular:" />
           {c && <ServicesCard tipo="Candidato" nombre={c.nombre} tel={c.tel} candidateId={c.id} preview={preview} />}
-          {c && <DeleteAccount onDeleted={onDeleted} preview={preview} />}
+          {c && <DeleteAccount candidateId={c.id} onDeleted={onDeleted} preview={preview} />}
         </div>
       </div>
     </>
@@ -303,10 +314,11 @@ function TestCard({ estado, permiso, onDone, preview }: { estado: string | null;
   );
 }
 
-function DeleteAccount({ onDeleted, preview }: { onDeleted: () => void; preview?: boolean }) {
+function DeleteAccount({ candidateId, onDeleted, preview }: { candidateId: string; onDeleted: () => void; preview?: boolean }) {
   const [ask, setAsk] = useState(false);
   const borrar = async () => {
     if (preview) { setAsk(false); return toast(PREVIEW_MSG); }
+    await borrarArchivos(candidateId);
     const { error } = await supabase.rpc('delete_my_account');
     if (error) return toast('No se pudo borrar: ' + error.message, true);
     await supabase.auth.signOut();
@@ -319,7 +331,7 @@ function DeleteAccount({ onDeleted, preview }: { onDeleted: () => void; preview?
       {!ask ? (
         <div className="actions"><button type="button" className="btn sm danger" onClick={() => setAsk(true)}>Borrar mi cuenta y mis datos</button></div>
       ) : (
-        <div className="confirm" role="alert"><b>¿Seguro que quieres borrar tu cuenta?</b><span>Se borran tu perfil, tus pruebas y tus postulaciones. No se puede deshacer.</span>
+        <div className="confirm" role="alert"><b>¿Seguro que quieres borrar tu cuenta?</b><span>Se borran tu perfil, tus pruebas, tus documentos, tus mensajes y tus postulaciones. No se puede deshacer.</span>
           <div className="actions"><button type="button" className="btn sm danger fill" onClick={borrar}>Sí, borrar todo</button><button type="button" className="btn sm" onClick={() => setAsk(false)}>Cancelar</button></div></div>
       )}
     </section>

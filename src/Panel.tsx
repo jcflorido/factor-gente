@@ -2,24 +2,27 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import { ESTADOS, TARIFAS_BASE, TRAITS, anticipoDe, cuota, daysSince, fmtCita, fmtDate, isInc, llega, match, money, norm, pasaInterno, perfilTexto, refFor, todayIso } from './lib/catalog';
 import { supabase } from './lib/supabase';
-import type { Candidate, Cobro, Company, Interest, Lead, Mensaje, Placement, RefSalary, Shortlist, Staff, Tarifas, Test, Vacancy } from './lib/types';
+import type { Candidate, Cobro, Company, Interest, Lead, Placement, RefSalary, Shortlist, Staff, Tarifas, Test, Vacancy } from './lib/types';
+import { ChatPanel } from './chat';
+import { DocsEquipo, borrarArchivos } from './docs';
 import { CandidateForm } from './Candidato';
 import { VacPill } from './Empresa';
 import { F, Logo, RefCard, Sel, ShareButtons, toast } from './ui';
 
 interface Data {
   cands: Candidate[]; vacs: Vacancy[]; cos: Company[]; tests: Test[]; short: Shortlist[];
-  places: Placement[]; ints: Interest[]; leads: Lead[]; refs: RefSalary[]; cobros: Cobro[]; tarifas: Tarifas; msgs: Mensaje[]; staff: Staff[];
+  places: Placement[]; ints: Interest[]; leads: Lead[]; refs: RefSalary[]; cobros: Cobro[]; tarifas: Tarifas; staff: Staff[];
 }
-const EMPTY: Data = { cands: [], vacs: [], cos: [], tests: [], short: [], places: [], ints: [], leads: [], refs: [], cobros: [], tarifas: TARIFAS_BASE, msgs: [], staff: [] };
+const EMPTY: Data = { cands: [], vacs: [], cos: [], tests: [], short: [], places: [], ints: [], leads: [], refs: [], cobros: [], tarifas: TARIFAS_BASE, staff: [] };
 
 const ESTADO_PILL: Record<string, string> = { Disponible: 'ok', 'En proceso': 'info', Colocado: 'lea', Inactivo: 'bad' };
 
 type Run = (p: PromiseLike<{ error: { message: string } | null }>, ok?: string) => Promise<boolean>;
 
 // rol 'admin' ve todo; 'reclutador' no ve cobros, tarifas ni equipo, y no borra
-export function Panel({ rol }: { rol: 'admin' | 'reclutador' }) {
+export function Panel({ rol, userId }: { rol: 'admin' | 'reclutador'; userId: string }) {
   const jefe = rol === 'admin';
+  const [chat, setChat] = useState<{ candidateId?: string | null; companyId?: string | null } | null>(null);
   const [d, setD] = useState<Data>(EMPTY);
   const [selVac, setSelVac] = useState<string | null>(null);
   const [selCand, setSelCand] = useState<string | null>(null);
@@ -41,7 +44,6 @@ export function Panel({ rol }: { rol: 'admin' | 'reclutador' }) {
       supabase.from('ref_salaries').select('*').order('orden'),
       supabase.from('cobros').select('*').order('created_at', { ascending: false }),
       supabase.from('tarifas').select('*').maybeSingle(),
-      supabase.from('mensajes').select('*').order('created_at', { ascending: false }).limit(200),
       supabase.rpc('list_staff'),
     ]);
     const bad = r.find((x) => x.error);
@@ -50,11 +52,30 @@ export function Panel({ rol }: { rol: 'admin' | 'reclutador' }) {
       cands: (r[0].data as Candidate[]) ?? [], vacs: (r[1].data as Vacancy[]) ?? [], cos: (r[2].data as Company[]) ?? [],
       tests: (r[3].data as Test[]) ?? [], short: (r[4].data as Shortlist[]) ?? [], places: (r[5].data as Placement[]) ?? [],
       ints: (r[6].data as Interest[]) ?? [], leads: (r[7].data as Lead[]) ?? [], refs: (r[8].data as RefSalary[]) ?? [],
-      cobros: (r[9].data as Cobro[]) ?? [], tarifas: (r[10].data as Tarifas) ?? TARIFAS_BASE, msgs: (r[11].data as Mensaje[]) ?? [],
-      staff: (r[12].data as Staff[]) ?? [],
+      cobros: (r[9].data as Cobro[]) ?? [], tarifas: (r[10].data as Tarifas) ?? TARIFAS_BASE,
+      staff: (r[11].data as Staff[]) ?? [],
     });
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  // Al abrir desde una notificación: ?chat=<candidato o empresa> o ?cand=<candidato>
+  const [urlHecha, setUrlHecha] = useState(false);
+  useEffect(() => {
+    if (urlHecha || (!d.cands.length && !d.cos.length)) return;
+    const q = new URLSearchParams(window.location.search);
+    const ch = q.get('chat'), ca = q.get('cand');
+    if (ch) setChat(d.cos.some((x) => x.id === ch) ? { companyId: ch } : { candidateId: ch });
+    if (ca) setSelCand(ca);
+    if (ch || ca) {
+      window.history.replaceState(null, '', '/');
+      setTimeout(() => document.getElementById(ch ? 'mensajes' : 'ficha')?.scrollIntoView({ behavior: 'smooth' }), 300);
+    }
+    setUrlHecha(true);
+  }, [d.cands, d.cos, urlHecha]);
+  const abrirChat = (h: { candidateId?: string | null; companyId?: string | null }) => {
+    setChat(h);
+    setTimeout(() => document.getElementById('mensajes')?.scrollIntoView({ behavior: 'smooth' }), 50);
+  };
 
   const cand = (id: string) => d.cands.find((c) => c.id === id);
   const co = (id: string) => d.cos.find((c) => c.id === id);
@@ -118,7 +139,7 @@ export function Panel({ rol }: { rol: 'admin' | 'reclutador' }) {
         <div className="kpi"><span>Siguen a 90 días</span><b>{maduras.length ? Math.round((siguen / maduras.length) * 100) + '%' : '—'}</b><small>{siguen} de {maduras.length} con 90 días</small></div>
       </div>
 
-      <Bandeja msgs={d.msgs} vacs={d.vacs} run={run} />
+      <ChatPanel userId={userId} abrir={chat} onAbrir={setChat} onCand={(id) => { setSelCand(id); setTimeout(() => document.getElementById('ficha')?.scrollIntoView({ behavior: 'smooth' }), 50); }} />
 
       {pend.length > 0 && (
         <section className="card attention">
@@ -160,7 +181,7 @@ export function Panel({ rol }: { rol: 'admin' | 'reclutador' }) {
             : <section className="card"><h3>Sin vacantes todavía</h3><p className="empty">Cuando una empresa envíe una solicitud aparecerá aquí.</p></section>}
           {selCand && cand(selCand) && (
             <Detalle c={cand(selCand)!} test={testOf(selCand)} run={run} jefe={jefe} onClose={() => setSelCand(null)}
-              onEdit={() => setForm({ mode: 'admin', c: cand(selCand)! })} />
+              onEdit={() => setForm({ mode: 'admin', c: cand(selCand)! })} onChat={() => abrirChat({ candidateId: selCand })} />
           )}
           {jefe && <Cobros d={d} coName={coName} cand={cand} run={run} />}
           <Base cands={d.cands} buscar={buscar} setBuscar={setBuscar} onCand={setSelCand} />
@@ -195,37 +216,6 @@ export function Panel({ rol }: { rol: 'admin' | 'reclutador' }) {
         </div>
       </div>
     </>
-  );
-}
-
-function Bandeja({ msgs, vacs, run }: { msgs: Mensaje[]; vacs: Vacancy[]; run: Run }) {
-  const [verTodos, setVerTodos] = useState(false);
-  const pendientes = msgs.filter((m) => !m.atendido);
-  const lista = verTodos ? msgs : pendientes;
-  if (!msgs.length) return null;
-  return (
-    <section className={'card' + (pendientes.length ? ' attention' : '')} style={{ marginBottom: 20 }}>
-      <div className="card-h"><h3>Mensajes</h3>
-        <div className="actions">
-          {pendientes.length > 0 && <span className="pill warn">{pendientes.length} sin responder</span>}
-          <label className="hint inline-check"><input type="checkbox" checked={verTodos} onChange={(e) => setVerTodos(e.target.checked)} /> Ver también los respondidos</label>
-        </div></div>
-      {!lista.length ? <p className="empty">No hay mensajes pendientes.</p> : (
-        <div className="list">{lista.map((m) => (
-          <div className="item" key={m.id}>
-            <div className="item-h"><span><b>{m.nombre}</b> <span className="pill lea">{m.tipo}</span>{m.vacancy_id && <span className="hint"> · {vacs.find((v) => v.id === m.vacancy_id)?.puesto}</span>}</span>
-              <span className="hint">{fmtCita(m.created_at)}</span></div>
-            <p>{m.texto}</p>
-            <div className="actions">
-              <span className="mono">WhatsApp: {m.tel}</span>
-              {m.atendido
-                ? <button type="button" className="btn sm" onClick={() => run(supabase.from('mensajes').update({ atendido: false }).eq('id', m.id))}>Marcar pendiente</button>
-                : <button type="button" className="btn sm primary" onClick={() => run(supabase.from('mensajes').update({ atendido: true }).eq('id', m.id), 'Marcado como respondido.')}>Ya le respondí</button>}
-            </div>
-          </div>
-        ))}</div>
-      )}
-    </section>
   );
 }
 
@@ -408,13 +398,13 @@ function TarifasCard({ t, run }: { t: Tarifas; run: Run }) {
   );
 }
 
-function Detalle({ c, test, run, jefe, onClose, onEdit }: { c: Candidate; test?: Test; run: Run; jefe: boolean; onClose: () => void; onEdit: () => void }) {
+function Detalle({ c, test, run, jefe, onClose, onEdit, onChat }: { c: Candidate; test?: Test; run: Run; jefe: boolean; onClose: () => void; onEdit: () => void; onChat: () => void }) {
   const [notas, setNotas] = useState(c.notas ?? '');
   const [borrar, setBorrar] = useState(false);
   const r = test?.res;
   useEffect(() => setNotas(c.notas ?? ''), [c.id, c.notas]);
   return (
-    <section className="card">
+    <section className="card" id="ficha">
       <div className="card-h"><h3>{c.nombre}</h3>
         <div className="actions">
           <span className={'pill ' + (ESTADO_PILL[c.estado] ?? 'info')}>{c.estado}</span>
@@ -445,6 +435,7 @@ function Detalle({ c, test, run, jefe, onClose, onEdit }: { c: Candidate; test?:
           <p className="note">Lectura: {perfilTexto(r)}. Resultado orientativo, no es diagnóstico. Escala 0–100.</p>
         </>
       ) : <p className="empty">{test?.estado === 'asignada' ? 'Asignada, esperando respuestas.' : c.consent_pruebas ? 'Sin prueba asignada.' : 'No dio permiso para pruebas.'}</p>}
+      <DocsEquipo key={c.id} c={c} jefe={jefe} onChat={onChat} />
       <label className="f">Notas internas (solo tú las ves)
         <textarea value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Ej. referencias de su último trabajo, resultado de la entrevista…" />
       </label>
@@ -452,7 +443,7 @@ function Detalle({ c, test, run, jefe, onClose, onEdit }: { c: Candidate; test?:
         <button type="button" className="btn sm" disabled={notas === (c.notas ?? '')} onClick={() => run(supabase.from('candidates').update({ notas }).eq('id', c.id), 'Notas guardadas.')}>Guardar notas</button>
         {!jefe ? null : !borrar ? <button type="button" className="btn sm danger" onClick={() => setBorrar(true)}>Borrar candidato</button> : (
           <span className="confirm-inline">¿Borrar a {c.nombre} y todos sus datos?
-            <button type="button" className="btn sm danger fill" onClick={async () => { if (await run(supabase.from('candidates').delete().eq('id', c.id), 'Candidato borrado.')) onClose(); }}>Sí, borrar</button>
+            <button type="button" className="btn sm danger fill" onClick={async () => { await borrarArchivos(c.id); if (await run(supabase.from('candidates').delete().eq('id', c.id), 'Candidato borrado.')) onClose(); }}>Sí, borrar</button>
             <button type="button" className="btn sm" onClick={() => setBorrar(false)}>Cancelar</button></span>
         )}
       </div>
@@ -559,7 +550,7 @@ function Equipo({ staff, run }: { staff: Staff[]; run: Run }) {
   return (
     <section className="card">
       <h3>Equipo</h3>
-      <p className="hint">El reclutador ve candidatos, vacantes, mensajes y entrevistas. No ve cobros ni tarifas, y no puede borrar.</p>
+      <p className="hint">El reclutador ve candidatos, vacantes, mensajes, documentos y entrevistas. No ve cobros ni tarifas, y no puede borrar.</p>
       <div className="list">{staff.map((s) => (
         <div className="item" key={s.email}>
           <div className="item-h"><span className="mono">{s.email}</span>
@@ -602,7 +593,7 @@ function Difusion({ onAsistido }: { onAsistido: () => void }) {
       <span className="lbl">Compartir con quien busca trabajo</span>
       <ShareButtons texto="¿Buscas trabajo en SFR, Purísima o León? Regístrate gratis en Factor-Gente desde tu celular:" />
       <span className="lbl">Compartir con empresas</span>
-      <ShareButtons texto="¿Necesitas personal? En Factor-Gente tú solo subes tu vacante; nosotros filtramos y te presentamos a los 2 o 3 candidatos que mejor encajan. Pagas solo si contratas:" />
+      <ShareButtons texto="¿Necesitas personal? En Factor-Gente tú solo subes tu vacante; nosotros filtramos y te presentamos a los 2 o 3 candidatos que mejor encajan. Registrarte y publicar vacantes no tiene costo:" />
       <div className="actions"><button type="button" className="btn primary" onClick={onAsistido}>Registrar a alguien (asistido)</button></div>
       <p className="hint">Para quien no puede llenar el formulario: tú capturas sus datos mientras platican.</p>
     </section>

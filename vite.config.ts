@@ -6,8 +6,11 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
+      injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
       manifest: {
         name: 'Factor·Gente',
         short_name: 'Factor-Gente',
