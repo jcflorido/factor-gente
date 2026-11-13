@@ -37,12 +37,14 @@ export const DEMO_TERNAS: Terna[] = [
     ult_puesto: 'Pespuntadora', ult_tiempo: '1 a 3 años', esco: 'Secundaria', pmin: 10500, pmax: 12000, tipo_pref: 'Destajo',
     disp: 'Inmediata', mov: ['San Francisco del Rincón', 'Purísima del Rincón'], habilidades: ['Pespunte', 'Máquina de coser'],
     carta: null, res, cita: null, lugar: null,
+    s_entrevistado: true, s_referencias: 2, s_imss: true, s_ine: true, s_confirmo: true,
   },
   {
     vacancy_id: 'demo-vac', candidate_id: 'demo-b', letra: 2, quiere: true, liberado: false, nombre: 'María López (ejemplo)', tel: null,
     ult_puesto: 'Pespuntadora', ult_tiempo: '3 años o más', esco: 'Primaria', pmin: 11000, pmax: 12500, tipo_pref: 'Cualquiera',
     disp: '15 días', mov: ['San Francisco del Rincón'], habilidades: ['Pespunte', 'Control de calidad'],
     carta: null, res: { C: 76, S: 66, A: 70, E: 60, I: 50 }, cita: new Date(Date.now() + 2 * 864e5).toISOString(), lugar: 'Recepción de la planta',
+    s_entrevistado: true, s_referencias: 1, s_imss: false, s_ine: true, s_confirmo: true,
   },
 ];
 

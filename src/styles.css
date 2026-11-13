@@ -203,3 +203,7 @@ details p{margin-top:8px}
 .btn.disabled{opacity:.6;pointer-events:none}
 label.btn{display:inline-flex;align-items:center}
 .docs-equipo{border-top:1px solid var(--line);padding-top:12px}
+
+/* Sellos de verificación en la terna */
+.sellos{display:flex;flex-wrap:wrap;gap:6px}
+.sello-ok{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:.76rem;font-weight:600;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok)}

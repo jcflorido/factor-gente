@@ -34,7 +34,8 @@ export interface Vacancy {
 }
 
 export interface Test { candidate_id: string; estado: string; res: Res | null; assigned_at: string; completed_at: string | null }
-export interface Shortlist { vacancy_id: string; candidate_id: string; enviado: boolean; quiere: boolean; liberado: boolean; cita: string | null; lugar: string | null; created_at: string }
+export interface Shortlist { vacancy_id: string; candidate_id: string; enviado: boolean; quiere: boolean; liberado: boolean; cita: string | null; lugar: string | null; created_at: string;
+  conf_pedida: string | null; confirmado: boolean | null; conf_at: string | null; conf_motivo: string | null }
 export interface Placement { candidate_id: string; vacancy_id: string; ingreso: string; c30: boolean | null; c60: boolean | null; c90: boolean | null }
 export interface Interest { candidate_id: string; vacancy_id: string }
 export interface Lead { id: string; nombre: string; tipo: string; servicios: string[]; via: string | null; tel: string; created_at: string }
@@ -51,6 +52,7 @@ export interface Terna {
   pmin: number | null; pmax: number | null; tipo_pref: string | null; disp: string | null;
   mov: string[]; habilidades: string[]; carta: string | null; res: Res | null;
   cita: string | null; lugar: string | null;
+  s_entrevistado: boolean; s_referencias: number; s_imss: boolean; s_ine: boolean; s_confirmo: boolean;
 }
 
 export interface ChatMsg {
@@ -69,4 +71,15 @@ export interface Documento {
 export interface Referencia {
   id: string; candidate_id: string; nombre: string; empresa: string | null; puesto: string | null; telefono: string;
   relacion: string | null; verificada: boolean; recontrataria: string | null; resultado: string | null; verificado_at: string | null;
+}
+
+export interface Entrevista {
+  id: string; candidate_id: string; vacancy_id: string | null; cita: string | null; medio: string; enlace: string | null;
+  estado: string; respuestas: { p: string; v: number; nota: string }[] | null; calificacion: number | null;
+  resultado: string | null; comentario: string | null; created_at: string; realizada_at: string | null;
+}
+export interface MiEntrevista { id: string; cita: string | null; medio: string; enlace: string | null; estado: string; puesto: string | null }
+export interface MiConfirmacion {
+  vacancy_id: string; puesto: string; zona: string; smin: number | null; smax: number | null; tipo: string | null; horario: string | null;
+  prest: string[]; transporte: boolean; comedor: boolean; funciones: string; confirmado: boolean | null;
 }

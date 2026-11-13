@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Factor·Gente · Descripción de la plataforma para revisión de expertos</title>
+<link rel="stylesheet" href="../onboarding/estilos.css">
+<style>
+  body { font-size: 10pt; }
+  p, li { text-align: justify; }
+  h3 { font-size: 10.8pt; color: #12396A; margin: 12px 0 5px; }
+  table { font-size: 9.3pt; }
+  td:first-child { font-weight: 600; color: #12396A; }
+  .lead { font-size: 10.8pt; color: #13243D; background: #F2F7FC; border-left: 4px solid #F2C14E; border-radius: 6px; padding: 10px 14px; margin: 4px 0 12px; }
+  .diagrama { margin: 8px 0 6px; break-inside: avoid; }
+  .diagrama svg { width: 100%; height: auto; }
+  .nota { font-size: 9pt; color: #566479; }
+  ol.preg { padding-left: 20px; margin: 0 0 8px; } ol.preg li { margin-bottom: 6px; }
+  .contacto { margin-top: 14px; background: #12396A; color: #fff; border-radius: 10px; padding: 12px 16px; break-inside: avoid; }
+  .contacto b { color: #F2C14E; }
+  .contacto a { color: #fff; }
+  a { color: #1F62B0; }
+  .sello { display: inline-block; margin-top: 6px; border: 1.5px solid #F2C14E; color: #F2C14E; border-radius: 4px; padding: 2px 8px; font-size: 8pt; letter-spacing: 1.6px; }
+  .confid { border: 1.5px solid #B3261E; background: #FBE6E4; border-radius: 8px; padding: 9px 14px; margin: 0 0 12px; font-size: 9pt; break-inside: avoid; }
+  .confid b { color: #B3261E; display: block; margin-bottom: 2px; letter-spacing: .5px; }
+  @page { @bottom-center { content: "CONFIDENCIAL · Factor·Gente · Uso exclusivo del destinatario · No distribuir"; font-family: "Segoe UI", Arial, sans-serif; font-size: 7.5pt; color: #B3261E; letter-spacing: .4px; } @bottom-right { content: counter(page) " / " counter(pages); font-family: "Segoe UI", Arial, sans-serif; font-size: 7.5pt; color: #8A99AD; } }
+</style>
+</head>
+<body>
+
+<div class="portada">
+  <div class="marca">
+    <svg viewBox="0 0 82 80" aria-hidden="true"><path d="M15 48 L32 65" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" fill="none"/><circle cx="14" cy="27" r="10" fill="#FFFFFF"/><path d="M32 65 L60 33" stroke="#F2C14E" stroke-width="14" stroke-linecap="round" fill="none"/><circle cx="67" cy="13" r="10" fill="#F2C14E"/></svg>
+    <div>Factor<b>·</b><span>Gente</span></div>
+  </div>
+  <div class="tipo">Documento para<br>revisión de expertos<br><span class="sello">CONFIDENCIAL</span></div>
+</div>
+
+<h1>Descripción de la plataforma</h1>
+<p class="sub">Funcionamiento, ventajas y siguiente versión · noviembre de 2026</p>
+
+<div class="confid"><b>DOCUMENTO CONFIDENCIAL</b>Este documento contiene información reservada sobre el modelo de negocio, las tarifas y el desarrollo de Factor·Gente. Se comparte únicamente con usted para recabar su opinión experta. Le pedimos no reproducirlo, distribuirlo ni compartirlo con terceros, total o parcialmente, sin autorización por escrito de Juan Carlos F. Florido.</div>
+
+<div class="lead">Factor·Gente es un servicio de reclutamiento con filtro: la empresa describe el puesto y recibe solo a los 2 o 3 candidatos que mejor encajan, en lugar de una pila de currículums. Le pedimos su opinión experta sobre el modelo, el funcionamiento y los cambios planeados.</div>
+
+<h2>1. Presentación</h2>
+<p>Factor·Gente es un servicio de reclutamiento con filtro para empresas de San Francisco del Rincón, Purísima del Rincón y León, Guanajuato. Opera sobre una aplicación web propia, en línea desde octubre de 2026 en <a href="https://factorgente.jcflorido.me">factorgente.jcflorido.me</a>.</p>
+<p><b>El problema que atiende:</b> en la región, sobre todo en la industria del calzado, la rotación de personal operativo es alta. Muchas empresas "contratan por contratar" y a las pocas semanas la persona ya se fue. Las bolsas de trabajo llenan de currículums a la empresa, pero le dejan todo el trabajo de filtrar.</p>
+<p><b>La propuesta:</b> la empresa describe el puesto; Factor·Gente revisa su base de candidatos y le presenta solo a los 2 o 3 que mejor encajan, coordina las entrevistas y da seguimiento a la persona contratada.</p>
+<p><b>Lo que pedimos a usted:</b> su opinión experta sobre el modelo, el funcionamiento y los cambios planeados. En la sección 8 hay preguntas guía.</p>
+
+<h2>2. Modelo de servicio</h2>
+<p>Para quien busca empleo el servicio es gratuito; la empresa paga solo por la persona que contrata. Registrarse y publicar vacantes no tiene costo.</p>
+<table>
+  <tr><th style="width:32%">Concepto</th><th>Condición actual (tarifa de lanzamiento, hasta el 31 de diciembre de 2026)</th></tr>
+  <tr><td>Puesto operativo</td><td>$1,000 + IVA por persona contratada</td></tr>
+  <tr><td>Administrativo o supervisión</td><td>2 semanas del sueldo ofrecido + IVA</td></tr>
+  <tr><td>Anticipo para empresas nuevas</td><td>30% al iniciar la búsqueda, descontado del total; la terna no se envía sin anticipo</td></tr>
+  <tr><td>Plazo de pago</td><td>El resto se paga dentro de los días acordados tras el ingreso de la persona</td></tr>
+  <tr><td>Garantía de reemplazo</td><td>30 días, un reemplazo sin costo, solo si la colocación está pagada y se cumplen sus requisitos</td></tr>
+  <tr><td>No evasión</td><td>Si la empresa contrata en los 12 meses siguientes a alguien presentado por Factor·Gente, se cobra la colocación</td></tr>
+</table>
+<p>Las tarifas, el anticipo, el plazo y los días de garantía son parámetros que el administrador cambia desde su panel. Una empresa "de confianza" puede quedar exenta de anticipo.</p>
+<p><b>Requisitos de la garantía:</b> la persona desempeña el puesto y las condiciones publicadas; la empresa aplicó el manual de integración que entrega Factor·Gente; los pagos están al corriente; la salida fue por renuncia o por desempeño, no por recorte o cambio de condiciones; la empresa avisa en 5 días hábiles.</p>
+
+<h2>3. Cómo funciona</h2>
+<p>La empresa nunca ve la base de candidatos: Factor·Gente filtra, verifica y le presenta una terna anónima; los datos de contacto solo se liberan cuando la empresa pide entrevistar.</p>
+<div class="diagrama">
+<svg viewBox="0 0 760 650" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="13">
+  <defs><marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8A99AD"/></marker></defs>
+  <rect x="24" y="8" width="224" height="626" rx="10" fill="#F2F7FC"/>
+  <rect x="264" y="8" width="224" height="626" rx="10" fill="#E2EEFA"/>
+  <rect x="504" y="8" width="224" height="626" rx="10" fill="#F2F7FC"/>
+  <rect x="24" y="8" width="224" height="38" rx="10" fill="#1F62B0"/>
+  <rect x="264" y="8" width="224" height="38" rx="10" fill="#12396A"/>
+  <rect x="504" y="8" width="224" height="38" rx="10" fill="#1F62B0"/>
+  <text x="136" y="32" text-anchor="middle" font-weight="700" fill="#FFFFFF">Candidato</text>
+  <text x="376" y="32" text-anchor="middle" font-weight="700" fill="#F2C14E">Factor·Gente</text>
+  <text x="616" y="32" text-anchor="middle" font-weight="700" fill="#FFFFFF">Empresa</text>
+  <g fill="none" stroke="#8A99AD" stroke-width="1.5">
+    <path d="M136 112V158H272" marker-end="url(#fl)"/>
+    <path d="M616 112V158H480" marker-end="url(#fl)"/>
+    <path d="M376 184V204" marker-end="url(#fl)"/>
+    <path d="M272 230H240" marker-end="url(#fl)"/>
+    <path d="M376 256V276" marker-end="url(#fl)"/>
+    <path d="M480 302H616V348" marker-end="url(#fl)"/>
+    <path d="M616 400V446H480" marker-end="url(#fl)"/>
+    <path d="M272 446H240" marker-end="url(#fl)"/>
+    <path d="M376 472V518H512" marker-end="url(#fl)"/>
+    <path d="M616 544V590H480" marker-end="url(#fl)"/>
+  </g>
+  <g fill="#FFFFFF" stroke="#C9D6E5" stroke-width="1.25">
+    <rect x="32" y="60" width="208" height="52" rx="8"/>
+    <rect x="512" y="60" width="208" height="52" rx="8"/>
+    <rect x="272" y="132" width="208" height="52" rx="8"/>
+    <rect x="272" y="204" width="208" height="52" rx="8"/>
+    <rect x="32" y="204" width="208" height="52" rx="8"/>
+    <rect x="512" y="348" width="208" height="52" rx="8"/>
+    <rect x="272" y="420" width="208" height="52" rx="8"/>
+    <rect x="32" y="420" width="208" height="52" rx="8"/>
+    <rect x="512" y="492" width="208" height="52" rx="8"/>
+    <rect x="272" y="564" width="208" height="52" rx="8"/>
+  </g>
+  <rect x="272" y="276" width="208" height="52" rx="8" fill="#FDF3D7" stroke="#F2C14E" stroke-width="2.5"/>
+  <g text-anchor="middle">
+    <text x="136" y="82" font-weight="700" fill="#12396A">Se registra gratis</text><text x="136" y="100" font-size="11.5" fill="#566479">Perfil desde el celular</text>
+    <text x="616" y="82" font-weight="700" fill="#12396A">1. Publica la vacante</text><text x="616" y="100" font-size="11.5" fill="#566479">Puesto, sueldo, horario</text>
+    <text x="376" y="154" font-weight="700" fill="#12396A">2. Filtra y sugiere</text><text x="376" y="172" font-size="11.5" fill="#566479">Coincidencia por perfil</text>
+    <text x="376" y="226" font-weight="700" fill="#12396A">3. Verifica</text><text x="376" y="244" font-size="11.5" fill="#566479">Pruebas y documentos</text>
+    <text x="136" y="226" font-weight="700" fill="#12396A">Sube documentos</text><text x="136" y="244" font-size="11.5" fill="#566479">Solo si se los piden</text>
+    <text x="376" y="298" font-weight="700" fill="#12396A">4. Envía terna anónima</text><text x="376" y="316" font-size="11.5" fill="#8A5A00">2 o 3 perfiles sin contacto</text>
+    <text x="616" y="370" font-weight="700" fill="#12396A">5. Pide entrevista</text><text x="616" y="388" font-size="11.5" fill="#566479">Elige de la terna</text>
+    <text x="376" y="442" font-weight="700" fill="#12396A">6. Agenda la entrevista</text><text x="376" y="460" font-size="11.5" fill="#566479">Avisa a las dos partes</text>
+    <text x="136" y="442" font-weight="700" fill="#12396A">Asiste a la entrevista</text><text x="136" y="460" font-size="11.5" fill="#566479">Fecha y lugar por chat</text>
+    <text x="616" y="514" font-weight="700" fill="#12396A">7. Contrata y paga</text><text x="616" y="532" font-size="11.5" fill="#566479">El cobro se genera solo</text>
+    <text x="376" y="586" font-weight="700" fill="#12396A">8. Da seguimiento</text><text x="376" y="604" font-size="11.5" fill="#566479">30, 60 y 90 días; garantía</text>
+  </g>
+</svg>
+</div>
+<p class="nota">La terna (paso 4) es el producto central. El candidato solo sube documentos si Factor·Gente se los pide, y el seguimiento posterior a la contratación sostiene la garantía de reemplazo.</p>
+
+<h2>4. Funcionalidades actuales</h2>
+<p>La aplicación tiene tres pantallas: candidato, empresa y panel del equipo de Factor·Gente. Funciona en el navegador y se puede instalar en el celular como una app.</p>
+<h3>Para quien busca empleo</h3>
+<ul class="dot">
+  <li>Registro desde el celular en unos 5 minutos, sin correo ni contraseña.</li>
+  <li>Perfil completo: área (operativo, administrativo o supervisión), habilidades, último empleo, sueldo esperado, forma de pago, horario, disponibilidad, municipios donde puede trabajar y transporte.</li>
+  <li>Vacantes publicadas sin nombre de empresa, ordenadas por las que le quedan, con botón "Me interesa".</li>
+  <li>Cuestionario breve de personalidad (Mini-IPIP, 20 frases), solo si se le asigna y dio permiso.</li>
+  <li>Chat con Factor·Gente y avisos al celular.</li>
+  <li>Sección de documentos y referencias, solo cuando Factor·Gente se los pide.</li>
+  <li>Opción opcional de inclusión (discapacidad o adulto mayor) y botón para borrar su cuenta y todos sus datos.</li>
+</ul>
+<h3>Para la empresa</h3>
+<ul class="dot">
+  <li>Alta con correo y formulario de vacante: puesto, funciones, habilidades, sueldo, prestaciones, horario y rotación reciente del puesto.</li>
+  <li>Filtro interno de sexo o edad solo con justificación obligatoria; nunca se publica.</li>
+  <li>Terna anónima: ve experiencia, estudios, pretensiones, disponibilidad y perfil, sin nombre ni teléfono.</li>
+  <li>Botón "Quiero entrevistarlo": Factor·Gente agenda la cita y la empresa ve nombre, fecha y lugar.</li>
+  <li>Sueldos de referencia de la zona, chat con Factor·Gente y sección "Mis pagos".</li>
+</ul>
+<h3>Para el equipo de Factor·Gente (panel)</h3>
+<ul class="dot">
+  <li>Candidatos sugeridos por vacante con un porcentaje de coincidencia que pondera área, habilidades, sueldo, horario, distancia y el resultado del cuestionario.</li>
+  <li>Armado y envío de la terna, agenda de entrevistas y registro de contratación; el cobro se genera solo.</li>
+  <li>Seguimiento a 30, 60 y 90 días, con control de la garantía.</li>
+  <li>Bandeja de mensajes con todas las conversaciones y avisos al celular.</li>
+  <li>Solicitud de documentos (CV, INE, comprobante de domicilio, constancia de semanas del IMSS y hasta 3 más) y de 1 a 3 referencias laborales; revisión, registro de la llamada a cada referencia y recordatorios.</li>
+  <li>Registro asistido para quien no puede llenar el formulario, cartel con código QR y estadística de cómo nos conocen.</li>
+  <li>Roles de administrador y reclutador; el reclutador no ve cobros ni tarifas.</li>
+</ul>
+
+<h2>5. Ventajas y diferenciadores</h2>
+<p>La diferencia central es que el filtro lo hace Factor·Gente, no la empresa: la empresa recibe 2 o 3 candidatos revisados en lugar de una pila de currículums.</p>
+<table>
+  <tr><th style="width:20%">Aspecto</th><th>Bolsa de trabajo</th><th>Agencia tradicional</th><th>Factor·Gente</th></tr>
+  <tr><td>Quién filtra</td><td>La empresa</td><td>La agencia</td><td>Factor·Gente, con apoyo de la app</td></tr>
+  <tr><td>Lo que recibe la empresa</td><td>Muchos currículums</td><td>Candidatos, a veces contratados por la agencia</td><td>Terna anónima de 2 o 3; la empresa contrata directo</td></tr>
+  <tr><td>Costo para la empresa</td><td>Suscripción o publicación</td><td>Porcentaje alto o cuota mensual</td><td>Registro gratis; pago por colocación con tarifa de lanzamiento</td></tr>
+  <tr><td>Enfoque</td><td>General</td><td>General</td><td>Regional (SFR, Purísima, León) y calzado</td></tr>
+  <tr><td>Después de contratar</td><td>Nada</td><td>Variable</td><td>Manual de integración, seguimiento a 30, 60 y 90 días y garantía de 30 días</td></tr>
+</table>
+<h3>Otros diferenciadores</h3>
+<ul class="dot">
+  <li><b>Pensado contra la rotación:</b> el match considera distancia, transporte, horario y sueldo real, causas frecuentes de salida; la vacante registra cuántas personas salieron del puesto y por qué.</li>
+  <li><b>Accesible:</b> el candidato se registra desde el celular sin correo; existe registro asistido y cartel con QR para quien no llena formularios.</li>
+  <li><b>Cuida al candidato:</b> su teléfono no se entrega a la empresa salvo autorización; el servicio le es gratuito.</li>
+  <li><b>Inclusión:</b> vacantes incluyentes y filtro opcional para personas con discapacidad o adultos mayores.</li>
+  <li><b>Contacto directo:</b> chat con avisos al celular para candidatos y empresas.</li>
+</ul>
+
+<h2>6. Privacidad, ética y cumplimiento</h2>
+<p>La plataforma se diseñó conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares vigente desde el 21 de marzo de 2025; el aviso de privacidad integral está publicado en <a href="https://factorgente.jcflorido.me/aviso-de-privacidad.pdf">factorgente.jcflorido.me/aviso-de-privacidad.pdf</a>.</p>
+<ul class="dot">
+  <li><b>Consentimientos separados:</b> aviso y compartir perfil (obligatorios); pruebas y oferta de otros servicios (opcionales).</li>
+  <li><b>Solo mayores de 18 años.</b></li>
+  <li><b>No discriminación:</b> sexo y edad son un filtro interno que la empresa solo puede pedir con justificación escrita; nunca se publican.</li>
+  <li><b>Dato sensible:</b> la discapacidad es opcional, solo se usa para vacantes incluyentes y no se comparte sin autorización.</li>
+  <li><b>Documentos:</b> se piden solo a quien avanza en un proceso, son opcionales, se guardan en un almacenamiento privado, no se entregan a la empresa y se borran a más tardar 90 días después del proceso.</li>
+  <li><b>Derechos ARCO:</b> el candidato corrige su perfil o borra su cuenta y todos sus datos desde la app.</li>
+  <li><b>Seguridad:</b> cada usuario solo puede leer lo suyo; la empresa nunca accede a la base de candidatos.</li>
+</ul>
+<div class="aviso"><b class="t">Pendiente antes de la primera colocación cobrada</b>Cláusula expresa de que los honorarios nunca se descuentan del salario del trabajador, revisión de un abogado del aviso y de las condiciones del servicio, domicilio completo del responsable y evaluar el registro ante la STPS como agencia de colocación.</div>
+
+<h2>7. Siguiente versión</h2>
+<p>El objetivo de la siguiente versión es que "candidato filtrado" sea comprobable: que la empresa vea en la terna qué verificó Factor·Gente, y no solo lo que declaró el candidato.</p>
+<h3>7.1 Filtro verificado</h3>
+<ul class="dot">
+  <li><b>Entrevista previa con Factor·Gente</b> antes de presentar a la empresa (llamada, videollamada o presencial), con una guía fija de 5 o 6 preguntas calificadas del 1 al 5.</li>
+  <li><b>Confirmación de condiciones:</b> el candidato acepta sueldo, horario, zona y traslado antes de entrar a la terna.</li>
+  <li><b>Sellos en la terna:</b> "Entrevistado", "Referencias verificadas", "Historial IMSS verificado", "Confirmó condiciones".</li>
+  <li><b>CV automático</b> en PDF para quien no tiene uno, armado con su perfil y sin datos de contacto.</li>
+  <li><b>Historial de confiabilidad:</b> asistencia a entrevistas, confirmación previa y permanencia a 30 días, como semáforo interno.</li>
+  <li><b>Evaluación de la empresa</b> después de cada entrevista (puntualidad y ajuste al perfil).</li>
+  <li><b>Prueba práctica</b> cuando aplique: cuestionario de oficio para calzado o día de prueba pagado; ejercicio corto para administrativos.</li>
+  <li><b>Verificación del WhatsApp</b> con un código al registrarse.</li>
+  <li>Regla propuesta: no se envía una terna sin la entrevista previa.</li>
+</ul>
+<h3>7.2 Pruebas psicométricas profesionales (servicio adicional opcional)</h3>
+<p>La empresa elige pruebas de un catálogo (plataforma Psicotest) al crear la vacante; se aplican solo a los finalistas y se cobran por adelantado.</p>
+<table>
+  <tr><th style="width:36%">Prueba (nombre para la empresa)</th><th>Para qué sirve</th></tr>
+  <tr><td>Personalidad laboral</td><td>Cómo trabaja la persona y si encaja con el puesto y el equipo</td></tr>
+  <tr><td>Comportamiento en el trabajo</td><td>Responsabilidad, empeño, constancia y reacción bajo presión</td></tr>
+  <tr><td>Confianza y honestidad</td><td>Riesgo en puestos que manejan dinero, material o inventario</td></tr>
+  <tr><td>Inteligencia y aprendizaje</td><td>Capacidad para razonar, aprender y crecer</td></tr>
+  <tr><td>Competencias laborales</td><td>Brechas entre la persona y lo que pide el puesto</td></tr>
+  <tr><td>Competencias por puesto</td><td>Nivel principiante, competente o experto en habilidades del puesto</td></tr>
+  <tr><td>Liderazgo</td><td>Estilo para dirigir gente en el día a día y bajo presión</td></tr>
+  <tr><td>Ventas</td><td>Habilidad comercial, negociación y tolerancia al rechazo</td></tr>
+</table>
+<p>Precio sugerido por candidato evaluado, editable: una prueba $350 + IVA; paquete del puesto (hasta 3) $550 + IVA; evaluación completa $850 + IVA. Paquetes recomendados: operativo = comportamiento + confianza; administrativo = personalidad + inteligencia + confianza; supervisor = liderazgo + comportamiento + confianza.</p>
+<h3>7.3 Automatizaciones</h3>
+<ul class="dot">
+  <li>Aviso al candidato cuando se publica una vacante que le queda.</li>
+  <li>Recordatorio cada 60 días para confirmar si sigue buscando empleo.</li>
+  <li>Recordatorio automático de documentos a las 48 horas y borrado automático a los 90 días.</li>
+  <li>Entrega del manual de integración y de la guía del primer mes al registrar la contratación.</li>
+</ul>
+
+<h2 class="salto">8. Preguntas para su revisión</h2>
+<p>Agradeceremos sus comentarios sobre cualquier punto; estas preguntas sirven de guía.</p>
+<ol class="preg">
+  <li><b>Modelo y precio:</b> ¿le parece adecuada la tarifa por colocación y el anticipo del 30% para el mercado de la región? ¿Qué tarifa normal recomendaría a partir de 2027?</li>
+  <li><b>Garantía:</b> ¿los 30 días y sus requisitos son razonables y defendibles ante una empresa?</li>
+  <li><b>Filtro:</b> ¿qué verificaciones le dan más certeza a una empresa sobre un candidato operativo? ¿Y sobre uno administrativo?</li>
+  <li><b>Pruebas psicométricas:</b> ¿son adecuados los paquetes por tipo de puesto y los precios sugeridos? ¿Alguna prueba sobra o falta?</li>
+  <li><b>Rotación:</b> ¿qué otros factores deberíamos considerar en el match para que la persona se quede?</li>
+  <li><b>Legal y laboral:</b> ¿qué riesgos ve en el manejo de datos, documentos y referencias, o en la relación con la empresa y el trabajador? ¿Es indispensable el registro ante la STPS para operar?</li>
+  <li><b>Experiencia de uso:</b> ¿algo en el flujo le parece confuso o excesivo para un candidato o para una empresa?</li>
+  <li><b>Prioridades:</b> de la siguiente versión, ¿qué haría primero y qué dejaría para después?</li>
+</ol>
+
+<div class="contacto"><b>Contacto</b><br>Juan Carlos F. Florido · contacto@jcflorido.me · teléfono y WhatsApp 477 672 6720 · <a href="https://factorgente.jcflorido.me">factorgente.jcflorido.me</a></div>
+
+<p class="pie">Factor·Gente es un servicio de Juan Carlos F. Florido · Documento confidencial para revisión · noviembre de 2026</p>
+
+</body>
+</html>

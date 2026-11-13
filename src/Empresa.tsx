@@ -5,6 +5,7 @@ import type { Cobro, Company, RefSalary, Tarifas, Terna, Vacancy } from './lib/t
 import { DEMO_CO, DEMO_COBROS, DEMO_TERNAS, DEMO_VAC } from './lib/demo';
 import { Check, Checks, F, PREVIEW_MSG, Radios, RefCard, Sel, ServicesCard, Skills, toast } from './ui';
 import { ChatCard } from './chat';
+import { Sellos } from './entrevista';
 
 export function EmpresaHome({ userId, preview }: { userId: string; preview?: boolean }) {
   const [co, setCo] = useState<Company | null | undefined>(undefined);
@@ -76,6 +77,7 @@ export function EmpresaHome({ userId, preview }: { userId: string; preview?: boo
                       <div className="item surface" key={t.candidate_id}>
                         <div className="item-h"><strong>{t.nombre ?? 'Candidato ' + 'ABCDE'[t.letra - 1]}</strong>
                           {t.cita ? <span className="pill ok">Entrevista agendada</span> : t.quiere ? <span className="pill info">Pediste entrevista</span> : null}</div>
+                        <Sellos entrevistado={t.s_entrevistado} referencias={t.s_referencias ?? 0} imss={t.s_imss} ine={t.s_ine} confirmo={t.s_confirmo} />
                         {t.cita && <p className="note"><b>Entrevista:</b> {fmtCita(t.cita)} · {t.lugar}. Factor-Gente ya le avisó al candidato.</p>}
                         <div className="ficha">
                           <div><span>Último puesto</span>{t.ult_puesto ?? '—'} · {t.ult_tiempo ?? ''}</div>

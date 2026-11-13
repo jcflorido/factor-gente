@@ -6,6 +6,7 @@ import { DEMO_CAND } from './lib/demo';
 import { Aviso, Check, Checks, F, PREVIEW_MSG, Radios, Sel, ServicesCard, ShareCard, Skills, toast } from './ui';
 import { ChatCard } from './chat';
 import { MisDocumentos, borrarArchivos } from './docs';
+import { ConfirmarCondiciones, MiEntrevistaCard } from './entrevista';
 
 interface Draft {
   nombre: string; edad: string; sexo: string; tel: string; correo: string; municipio: string; colonia: string; esco: string;
@@ -239,6 +240,8 @@ export function CandidatoHome({ userId, onDeleted, preview }: { userId: string; 
       <div className="grid">
         <CandidateForm key={c?.id ?? 'nuevo'} initial={c} mode="self" userId={userId} preview={preview} onSaved={(x) => { setC(x); load(); }} />
         <div className="stack">
+          {c && <MiEntrevistaCard preview={preview} />}
+          {c && <ConfirmarCondiciones preview={preview} />}
           {c && <MisDocumentos candidateId={c.id} preview={preview} />}
           {c && <TestCard estado={test} permiso={c.consent_pruebas} preview={preview} onDone={() => setTest('completada')} />}
           {c && <ChatCard candidateId={c.id} userId={userId} preview={preview} />}

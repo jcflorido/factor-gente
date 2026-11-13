@@ -50,7 +50,8 @@ Plataforma: Psicotest. Acordado con JC el 11/11.
 
 ### 2b. "Filtro verificado"
 - HECHO (2026-11-12): solicitar documentos (CV, INE, domicilio, IMSS + 3 "Otro"), subida de fotos/PDF con compresión, revisar / pedir otra vez / subirlo el equipo, referencias laborales con registro de llamada, recordatorio manual (resaltado a las 48 h), borrar archivos, aviso de privacidad actualizado.
-- Falta: entrevista previa con guía y calificación, confirmar condiciones, historial de confiabilidad, evaluación de la empresa, prueba práctica, verificación del WhatsApp, CV automático en PDF, sellos en la terna, recordatorio automático a las 48 h y borrado automático a los 90 días (requieren tarea programada).
+- HECHO (2026-11-13, migración 0007): entrevista previa (agenda + guía de 6 preguntas 1–5 + resultado), confirmación de condiciones por vacante, sellos en la terna (entrevistado, referencias, IMSS, identidad, confirmó) y regla de no enviar terna sin entrevista (con opción de enviar de todos modos).
+- Falta: historial de confiabilidad, evaluación de la empresa, prueba práctica, verificación del WhatsApp, CV automático en PDF, sellos en la terna, recordatorio automático a las 48 h y borrado automático a los 90 días (requieren tarea programada).
 Objetivo: que "candidato filtrado" sea comprobable. En la terna la empresa ve sellos:
 "Entrevistado ✓ · Referencias verificadas ✓ · Historial IMSS verificado ✓ · Confirmó condiciones ✓".
 Prioridad sugerida:

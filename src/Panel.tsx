@@ -5,6 +5,7 @@ import { supabase } from './lib/supabase';
 import type { Candidate, Cobro, Company, Interest, Lead, Placement, RefSalary, Shortlist, Staff, Tarifas, Test, Vacancy } from './lib/types';
 import { ChatPanel } from './chat';
 import { DocsEquipo, borrarArchivos } from './docs';
+import { EntrevistaEquipo } from './entrevista';
 import { CandidateForm } from './Candidato';
 import { VacPill } from './Empresa';
 import { F, Logo, RefCard, Sel, ShareButtons, toast } from './ui';
@@ -12,8 +13,9 @@ import { F, Logo, RefCard, Sel, ShareButtons, toast } from './ui';
 interface Data {
   cands: Candidate[]; vacs: Vacancy[]; cos: Company[]; tests: Test[]; short: Shortlist[];
   places: Placement[]; ints: Interest[]; leads: Lead[]; refs: RefSalary[]; cobros: Cobro[]; tarifas: Tarifas; staff: Staff[];
+  ents: { candidate_id: string; estado: string; resultado: string | null; cita: string | null }[];
 }
-const EMPTY: Data = { cands: [], vacs: [], cos: [], tests: [], short: [], places: [], ints: [], leads: [], refs: [], cobros: [], tarifas: TARIFAS_BASE, staff: [] };
+const EMPTY: Data = { cands: [], vacs: [], cos: [], tests: [], short: [], places: [], ints: [], leads: [], refs: [], cobros: [], tarifas: TARIFAS_BASE, staff: [], ents: [] };
 
 const ESTADO_PILL: Record<string, string> = { Disponible: 'ok', 'En proceso': 'info', Colocado: 'lea', Inactivo: 'bad' };
 
@@ -45,6 +47,7 @@ export function Panel({ rol, userId }: { rol: 'admin' | 'reclutador'; userId: st
       supabase.from('cobros').select('*').order('created_at', { ascending: false }),
       supabase.from('tarifas').select('*').maybeSingle(),
       supabase.rpc('list_staff'),
+      supabase.from('entrevistas').select('candidate_id,estado,resultado,cita'),
     ]);
     const bad = r.find((x) => x.error);
     if (bad?.error) toast('No se pudieron cargar los datos: ' + bad.error.message, true);
@@ -54,6 +57,7 @@ export function Panel({ rol, userId }: { rol: 'admin' | 'reclutador'; userId: st
       ints: (r[6].data as Interest[]) ?? [], leads: (r[7].data as Lead[]) ?? [], refs: (r[8].data as RefSalary[]) ?? [],
       cobros: (r[9].data as Cobro[]) ?? [], tarifas: (r[10].data as Tarifas) ?? TARIFAS_BASE,
       staff: (r[11].data as Staff[]) ?? [],
+      ents: (r[12].data as Data['ents']) ?? [],
     });
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -181,7 +185,8 @@ export function Panel({ rol, userId }: { rol: 'admin' | 'reclutador'; userId: st
             : <section className="card"><h3>Sin vacantes todavía</h3><p className="empty">Cuando una empresa envíe una solicitud aparecerá aquí.</p></section>}
           {selCand && cand(selCand) && (
             <Detalle c={cand(selCand)!} test={testOf(selCand)} run={run} jefe={jefe} onClose={() => setSelCand(null)}
-              onEdit={() => setForm({ mode: 'admin', c: cand(selCand)! })} onChat={() => abrirChat({ candidateId: selCand })} />
+              onEdit={() => setForm({ mode: 'admin', c: cand(selCand)! })} onChat={() => abrirChat({ candidateId: selCand })}
+              vacs={d.vacs} onCambio={load} />
           )}
           {jefe && <Cobros d={d} coName={coName} cand={cand} run={run} />}
           <Base cands={d.cands} buscar={buscar} setBuscar={setBuscar} onCand={setSelCand} />
@@ -267,6 +272,17 @@ function Sugeridos({ v, d, jefe, company, testOf, filtroInterno, setFiltroIntern
   if (soloInc) rows = rows.filter((x) => isInc(x.c));
   rows.sort((a, b) => b.s - a.s);
 
+  const ent = (cid: string) => {
+    const xs = d.ents.filter((e) => e.candidate_id === cid);
+    if (xs.some((e) => e.estado === 'Realizada' && e.resultado !== 'No recomendado')) return 'ok';
+    if (xs.some((e) => e.estado === 'Realizada' && e.resultado === 'No recomendado')) return 'no';
+    if (xs.some((e) => e.estado === 'Agendada')) return 'agendada';
+    return null;
+  };
+  const [forzar, setForzar] = useState(false);
+  const pendientesTerna = terna.filter((s) => !s.enviado);
+  const sinEntrevista = pendientesTerna.filter((s) => ent(s.candidate_id) !== 'ok');
+  const sinConfirmar = pendientesTerna.filter((s) => s.confirmado !== true);
   const toggle = (cid: string) => enTerna(cid)
     ? run(supabase.from('shortlist').delete().eq('vacancy_id', v.id).eq('candidate_id', cid).eq('enviado', false))
     : run(supabase.from('shortlist').insert({ vacancy_id: v.id, candidate_id: cid }));
@@ -322,7 +338,8 @@ function Sugeridos({ v, d, jefe, company, testOf, filtroInterno, setFiltroIntern
               <tr key={c.id}>
                 <td><button type="button" className="link" onClick={() => onCand(c.id)}>{c.nombre}</button>
                   <div className="hint">{c.edad} años · {c.municipio}{d.ints.some((i) => i.candidate_id === c.id && i.vacancy_id === v.id) && <> · <b>se interesó</b></>}</div>
-                  <div className="meta">{!llega(c, v) && <span className="pill warn">No marcó {v.zona}</span>}{isInc(c) && <span className="pill lea">Inclusión</span>}{c.asistido && <span className="pill info">Asistido</span>}</div></td>
+                  <div className="meta">{!llega(c, v) && <span className="pill warn">No marcó {v.zona}</span>}{isInc(c) && <span className="pill lea">Inclusión</span>}{c.asistido && <span className="pill info">Asistido</span>}
+                    {ent(c.id) === 'ok' && <span className="pill ok">Entrevistado</span>}{ent(c.id) === 'agendada' && <span className="pill info">Entrevista agendada</span>}{ent(c.id) === 'no' && <span className="pill bad">No recomendado</span>}</div></td>
                 <td>{c.ult_puesto ?? '—'}<div className="hint">{c.ult_tiempo} · {c.ult_tipo} · {money(c.ult_sueldo)}</div></td>
                 <td className="mono">{money(c.pmin)}–{money(c.pmax)}</td>
                 <td>{t?.estado === 'completada' && t.res ? <span className="pill ok">Resp. {t.res.C}</span>
@@ -336,8 +353,35 @@ function Sugeridos({ v, d, jefe, company, testOf, filtroInterno, setFiltroIntern
           })}
         </tbody></table></div>
       )}
+      {pendientesTerna.length > 0 && (
+        <div className="stack-sm">
+          <span className="lbl">Revisión antes de enviar la terna</span>
+          {pendientesTerna.map((s) => {
+            const c = d.cands.find((x) => x.id === s.candidate_id);
+            if (!c) return null;
+            const e = ent(c.id);
+            return (
+              <div className="item" key={s.candidate_id}>
+                <div className="item-h"><button type="button" className="link" onClick={() => onCand(c.id)}>{c.nombre}</button>
+                  <span className="meta">
+                    {e === 'ok' ? <span className="pill ok">Entrevistado</span> : e === 'agendada' ? <span className="pill info">Entrevista agendada</span> : e === 'no' ? <span className="pill bad">No recomendado</span> : <span className="pill warn">Sin entrevista previa</span>}
+                    {s.confirmado === true ? <span className="pill ok">Confirmó condiciones</span> : s.confirmado === false ? <span className="pill bad">No aceptó{s.conf_motivo ? ': ' + s.conf_motivo : ''}</span> : s.conf_pedida ? <span className="pill info">Confirmación pedida</span> : <span className="pill warn">Sin confirmar condiciones</span>}
+                  </span></div>
+                <div className="actions">
+                  {e !== 'ok' && <button type="button" className="btn sm" onClick={() => onCand(c.id)}>Agendar o registrar entrevista</button>}
+                  {s.confirmado !== true && c.user_id && <button type="button" className="btn sm" onClick={() => run(supabase.rpc('pedir_confirmacion', { p_vacancy: v.id, p_candidate: c.id }), 'Le pedimos confirmar las condiciones por el chat.')}>{s.conf_pedida ? 'Volver a pedir confirmación' : 'Pedir confirmación'}</button>}
+                  {s.confirmado !== true && !c.user_id && <button type="button" className="btn sm" onClick={() => run(supabase.from('shortlist').update({ confirmado: true, conf_at: new Date().toISOString(), conf_pedida: new Date().toISOString() }).eq('vacancy_id', v.id).eq('candidate_id', c.id), 'Registrado: confirmó por teléfono.')}>Confirmó por teléfono</button>}
+                </div>
+              </div>
+            );
+          })}
+          {sinEntrevista.length > 0 && <p className="note">Regla de Factor·Gente: no se envía una terna sin entrevista previa. Falta con {sinEntrevista.length} candidato{sinEntrevista.length > 1 ? 's' : ''}.
+            {' '}<label className="inline-check"><input type="checkbox" checked={forzar} onChange={(e) => setForzar(e.target.checked)} /> Enviar de todos modos</label></p>}
+          {sinEntrevista.length === 0 && sinConfirmar.length > 0 && <p className="hint">Puedes enviar, pero quien no confirmó condiciones no llevará ese sello.</p>}
+        </div>
+      )}
       <div className="actions">
-        <button type="button" className="btn primary" disabled={!terna.length || terna.every((s) => s.enviado) || faltaAnticipo} onClick={enviar}>
+        <button type="button" className="btn primary" disabled={!terna.length || terna.every((s) => s.enviado) || faltaAnticipo || (sinEntrevista.length > 0 && !forzar)} onClick={enviar}>
           {terna.length && terna.every((s) => s.enviado) ? `Terna enviada (${terna.length})` : `Enviar terna a la empresa (${terna.length}/3)`}</button>
         {faltaAnticipo && terna.length > 0 && <span className="hint">{jefe
           ? 'Para enviar la terna, primero registra el anticipo o marca a la empresa como de confianza.'
@@ -398,7 +442,7 @@ function TarifasCard({ t, run }: { t: Tarifas; run: Run }) {
   );
 }
 
-function Detalle({ c, test, run, jefe, onClose, onEdit, onChat }: { c: Candidate; test?: Test; run: Run; jefe: boolean; onClose: () => void; onEdit: () => void; onChat: () => void }) {
+function Detalle({ c, test, run, jefe, onClose, onEdit, onChat, vacs, onCambio }: { c: Candidate; test?: Test; run: Run; jefe: boolean; onClose: () => void; onEdit: () => void; onChat: () => void; vacs: Vacancy[]; onCambio: () => void }) {
   const [notas, setNotas] = useState(c.notas ?? '');
   const [borrar, setBorrar] = useState(false);
   const r = test?.res;
@@ -435,6 +479,7 @@ function Detalle({ c, test, run, jefe, onClose, onEdit, onChat }: { c: Candidate
           <p className="note">Lectura: {perfilTexto(r)}. Resultado orientativo, no es diagnóstico. Escala 0–100.</p>
         </>
       ) : <p className="empty">{test?.estado === 'asignada' ? 'Asignada, esperando respuestas.' : c.consent_pruebas ? 'Sin prueba asignada.' : 'No dio permiso para pruebas.'}</p>}
+      <EntrevistaEquipo key={'e' + c.id} c={c} vacs={vacs} onCambio={onCambio} />
       <DocsEquipo key={c.id} c={c} jefe={jefe} onChat={onChat} />
       <label className="f">Notas internas (solo tú las ves)
         <textarea value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Ej. referencias de su último trabajo, resultado de la entrevista…" />
